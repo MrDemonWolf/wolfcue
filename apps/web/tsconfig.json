@@ -1,0 +1,9 @@
+{
+	"extends": "@wolfcue/config/tsconfig.base.json",
+	"compilerOptions": {
+		"lib": ["ES2023", "DOM", "DOM.Iterable"],
+		"types": ["vite/client", "bun"],
+		"noEmit": true
+	},
+	"include": ["src", "vite.config.ts", "vite-plugin-site.ts"]
+}

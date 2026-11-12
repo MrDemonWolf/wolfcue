@@ -1,0 +1,53 @@
+---
+title: Privacy
+description: Local storage, intentional script links, and static host requests.
+---
+
+WolfCue has no accounts, analytics, AI service, camera access, microphone
+access, or script uploads. Reading, import validation, word counting, and
+export happen in the browser. Script text enters a URL only when you choose
+**Export**, then **Copy script link**.
+
+GitHub Pages serves the public static files. The host receives your IP address
+and normal request metadata when those files load. Documentation search reads
+a static same-origin index. Fonts and app assets are self-hosted.
+
+## Script links
+
+A copied script link contains the script text in its `#script=` fragment.
+The receiving browser reads and validates that fragment locally, then
+removes it from the address. The app does not put script text in paths or
+query strings, and the fragment is not sent to the static host in the page
+request. Opening a link does not start scrolling automatically.
+
+Anyone with the link can read the text. The fragment is encoded, not
+encrypted; HTTPS protects the page request but does not make the copied
+link secret. Copies retained in a clipboard, message, or bookmark still
+contain the snapshot. Erasing local data does not revoke those copies.
+
+## Local storage
+
+The app uses these namespaced keys:
+
+| Key | Content |
+| --- | --- |
+| `wolfcue:v1:script` | Your raw script text |
+| `wolfcue:v1:prefs` | Validated reader settings |
+| `wolfcue:theme` | Explicit Light or Dark choice; absent means System |
+
+Reading position is not saved across reloads. The docs use a separate theme
+key managed by Fumadocs. Safari and Moblin use separate browser storage.
+
+**Saved on this device** means the current local write succeeded. If storage
+is denied or full, WolfCue keeps your script in memory and reports that it is
+not saved. Closing the page can then lose it. The browser can also evict saved
+data after inactivity. Export a backup.
+
+## Erase local data
+
+Open **Settings**, choose **Erase all local data**, and confirm. This removes
+the app's three keys and resets its in-memory script and preferences. It does
+not erase a downloaded file, a clipboard copy, or Fumadocs' theme preference.
+
+Offline use after closing and reopening is not guaranteed. This version has
+no service worker or PWA cache.

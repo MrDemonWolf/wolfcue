@@ -1,0 +1,152 @@
+dialog {
+	color: var(--text);
+	background: var(--surface);
+	border: 1px solid var(--line-strong);
+	border-radius: 14px;
+	padding: 20px;
+	width: min(520px, calc(100% - 24px));
+	max-height: calc(100vh - 24px);
+	overflow: auto;
+	overscroll-behavior: contain;
+}
+dialog::backdrop {
+	background: #000000;
+	opacity: 0.65;
+}
+body:has(dialog[open]) {
+	overflow: hidden;
+}
+.dialog-heading {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 16px;
+}
+.dialog-heading h2 {
+	margin: 0;
+	font-size: 22px;
+}
+.dialog-body {
+	min-width: 0;
+}
+.dialog-body > label {
+	display: block;
+	font-size: 13px;
+	margin-bottom: 8px;
+}
+.dialog-body > input {
+	width: 100%;
+}
+fieldset {
+	padding: 0;
+	border: 0;
+	margin: 0 0 22px;
+	min-width: 0;
+}
+legend {
+	font-weight: 650;
+	font-size: 13px;
+	color: var(--brand-text);
+	margin-bottom: 8px;
+}
+.setting-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	min-height: 50px;
+	font-size: 14px;
+	border-bottom: 1px solid var(--line);
+}
+.setting-row > select {
+	max-width: 60%;
+	font-size: 13px;
+}
+.setting-row > input[type="number"] {
+	width: 85px;
+	flex: 0 0 auto;
+}
+fieldset .hint {
+	margin: 8px 0 0;
+}
+summary {
+	min-height: 44px;
+	padding: 10px 0;
+	font-size: 14px;
+	font-weight: 600;
+}
+.shortcuts {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr);
+	gap: 10px;
+	font-size: 12px;
+	line-height: 1.5;
+}
+.shortcuts dt {
+	font-weight: 650;
+}
+.shortcuts dd {
+	margin: 0;
+}
+.settings-links {
+	display: flex;
+	gap: 18px;
+	flex-wrap: wrap;
+	margin: 20px 0 14px;
+	font-size: 13px;
+}
+.dialog-actions,
+.export-options {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 20px;
+}
+#export-status {
+	font-size: 13px;
+	line-height: 1.6;
+}
+#copy-fallback {
+	width: 100%;
+	min-height: 100px;
+}
+#confirm-message {
+	line-height: 1.6;
+}
+@media (max-width: 300px), (max-height: 300px) {
+	dialog {
+		padding: 12px;
+		border-radius: 10px;
+	}
+	.dialog-heading h2 {
+		font-size: 18px;
+	}
+	.setting-row {
+		gap: 8px;
+		font-size: 12px;
+	}
+	.setting-row > select {
+		max-width: 55%;
+		font-size: 12px;
+		padding: 6px;
+	}
+	.settings-links {
+		gap: 8px;
+	}
+}
+@supports (height: 100dvh) {
+	dialog {
+		max-height: calc(100dvh - 24px);
+	}
+}
+
+.setting-group {
+	padding: 10px 0;
+	border-bottom: 1px solid var(--line);
+	font-size: 14px;
+}
+.setting-group > span {
+	display: block;
+	margin-bottom: 8px;
+}

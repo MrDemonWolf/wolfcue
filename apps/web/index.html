@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="/theme.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>WolfCue | Free Browser Teleprompter for Moblin</title>
+<meta name="description" content="Free browser teleprompter for Moblin on iPhone. Paste a script, set your pace, and read with auto-scroll. No account or script uploads." />
+<meta name="author" content="MrDemonWolf, Inc." />
+<link rel="canonical" href="https://wolfcue.mrdemonwolf.dev/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="WolfCue" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:title" content="WolfCue | Free Browser Teleprompter for Moblin" />
+<meta property="og:description" content="Free browser teleprompter for Moblin on iPhone. Paste a script, set your pace, and read with auto-scroll. No account or script uploads." />
+<meta property="og:url" content="https://wolfcue.mrdemonwolf.dev/" />
+<meta property="og:image" content="https://wolfcue.mrdemonwolf.dev/og-v2.png" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="WolfCue browser teleprompter with the MrDemonWolf logo and a reading guide on a charcoal background. Your words. At your pace." />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="WolfCue | Free Browser Teleprompter for Moblin" />
+<meta name="twitter:description" content="Free browser teleprompter for Moblin on iPhone. Paste a script, set your pace, and read with auto-scroll. No account or script uploads." />
+<meta name="twitter:image" content="https://wolfcue.mrdemonwolf.dev/og-v2.png" />
+<meta name="twitter:image:alt" content="WolfCue browser teleprompter with the MrDemonWolf logo and a reading guide on a charcoal background. Your words. At your pace." />
+<meta name="theme-color" content="#f7f7f7" />
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f7f7" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#171717" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" sizes="32x32" href="/favicon.ico" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<script type="module" src="/src/main.ts"></script>
+</head>
+<body>
+<main id="editor">
+<header class="masthead"><a class="wordmark" href="%BASE_URL%" aria-label="WolfCue home"><img class="brand-logo" src="/mrdemonwolf-logo.svg" width="36" height="36" alt="" />WolfCue</a><button id="editor-settings" type="button">Settings</button></header>
+<div class="intro"><p class="eyebrow">Your words, at your pace</p><h1>Your browser<br /> teleprompter.</h1><p>A free teleprompter for Moblin's private browser. Paste your script and set your pace.</p></div>
+<div class="workspace">
+<section class="script-panel" aria-labelledby="script-label">
+<div class="section-heading"><label id="script-label" for="script">Your script</label><span id="save-status" role="status">Saved on this device</span></div>
+<textarea id="script" spellcheck="false" placeholder="Start with what you want to say..." aria-describedby="script-stats storage-note"></textarea>
+<div class="script-bottom"><p id="script-stats">0 words · about 0:00</p><span class="local-note">Stays on your device</span></div>
+<div class="file-actions"><button id="import" type="button">Import .txt</button><button id="export" type="button" disabled>Export</button><button id="clear" class="quiet" type="button" disabled>Clear</button></div>
+<input id="file-input" type="file" accept=".txt,text/plain" hidden />
+<p id="file-status" class="notice" role="status"></p>
+</section>
+<section class="setup-panel" aria-label="Reading setup">
+<div class="setup-heading"><span class="cue-mark" aria-hidden="true"></span><h2>Make it your pace</h2></div>
+<span id="pace-label" class="control-label">Pace</span><div id="pace-mode" class="radio-group pace-options" role="radiogroup" aria-labelledby="pace-label"><label><input type="radio" name="editor-pace" data-setting="paceMode" value="wpm" />Words per minute</label><label><input type="radio" name="editor-pace" data-setting="paceMode" value="target" />Target time</label></div>
+<div class="stepper" data-pace="wpm"><button type="button" data-adjust="wpm" data-delta="-5" aria-label="Decrease words per minute">−</button><label><input id="wpm" data-setting="wpm" type="number" min="60" max="300" step="5" aria-label="Words per minute" /><span>wpm</span></label><button type="button" data-adjust="wpm" data-delta="5" aria-label="Increase words per minute">+</button></div>
+<div class="stepper" data-pace="target" hidden><button type="button" data-adjust="targetSec" data-delta="-5" aria-label="Decrease target time">−</button><label><input id="target-seconds" data-setting="targetSec" type="number" min="10" max="3600" step="5" aria-label="Target time in seconds" /><span>sec</span></label><button type="button" data-adjust="targetSec" data-delta="5" aria-label="Increase target time">+</button></div>
+<p class="hint" id="pace-hint">A comfortable starting point. Adjust as you read.</p>
+<label for="font-size">Text size</label><div class="stepper"><button type="button" data-adjust="fontSizePx" data-delta="-2" aria-label="Decrease text size">−</button><label><input id="font-size" data-setting="fontSizePx" type="number" min="18" max="96" step="2" aria-label="Text size in pixels" /><span>px</span></label><button type="button" data-adjust="fontSizePx" data-delta="2" aria-label="Increase text size">+</button></div>
+<button id="start-reading" class="primary" type="button" disabled>Start reading <span aria-hidden="true">→</span></button>
+<p class="hint start-hint">A quiet cue sheet. Recording stays with Moblin.</p>
+</section>
+</div>
+<p id="storage-note" class="storage-note">Safari and Moblin keep separate storage. Paste or import your script inside Moblin. Export a copy to keep a backup.</p>
+<footer class="site-footer"><p class="affiliation">WolfCue is an independent, open-source tool. Not affiliated with, endorsed by, or sponsored by Moblin.</p><div class="footer-bottom"><div class="footer-credit"><p>© <span id="year">2026</span> WolfCue by <a href="https://www.mrdemonwolf.com">MrDemonWolf, Inc.</a></p><span id="build-stamp">Build dev</span></div><nav aria-label="Project links"><a href="%BASE_URL%docs/">Docs</a><a href="https://github.com/MrDemonWolf/wolfcue">GitHub</a><a href="https://mrdwolf.net/discord">Discord</a></nav></div></footer>
+</main>
+<section id="reader" hidden inert tabindex="-1" aria-label="Script reader">
+<div class="reader-chrome">
+<div class="reader-topbar"><button id="toggle-play" class="primary" type="button">Pause</button><div class="reader-metrics"><output id="elapsed" aria-label="Elapsed active reading time" aria-live="off">0:00</output><output id="percent" aria-label="Script progress" aria-live="off">0%</output></div><span id="remaining" class="remaining">0:00 left</span><button id="reader-settings" type="button">Settings</button></div>
+<div class="progress-track" aria-hidden="true"><div id="progress-fill"></div></div>
+<div id="paused-controls" class="paused-controls"><button id="restart" type="button">Restart</button><button id="exit-reader" type="button">Exit</button><label class="seek-label" for="seek">Position <input id="seek" type="range" min="0" max="1000" step="1" value="0" /></label></div>
+<div class="reader-status"><span id="reader-state" role="status">Paused</span><span id="reader-pace"></span><span id="compact-remaining"></span><span id="over-target" hidden>Target exceeded; pace capped</span></div>
+<p id="reader-notice" class="reader-notice" role="status"></p>
+</div>
+<div id="stage" class="stage"><div id="script-transform"><div id="script-content"></div></div><div id="read-dim" aria-hidden="true"></div><div id="reading-guide" aria-hidden="true"></div><div id="countdown" hidden aria-live="polite"></div></div>
+</section>
+<dialog id="settings-dialog" aria-labelledby="settings-title"><div class="dialog-heading"><h2 id="settings-title">Settings</h2><button type="button" data-close="settings-dialog">Done</button></div><div class="dialog-body">
+<fieldset><legend>Reading pace</legend><div class="setting-group"><span id="settings-pace-label">Pace mode</span><div id="settings-pace-mode" class="radio-group" role="radiogroup" aria-labelledby="settings-pace-label"><label><input type="radio" name="settings-pace" data-setting="paceMode" value="wpm" />Words per minute</label><label><input type="radio" name="settings-pace" data-setting="paceMode" value="target" />Target time</label></div></div>
+<label class="setting-row" data-pace="wpm" for="settings-wpm">Words per minute<input id="settings-wpm" data-setting="wpm" type="number" min="60" max="300" step="5" /></label><label class="setting-row" data-pace="target" for="settings-target" hidden>Target seconds<input id="settings-target" data-setting="targetSec" type="number" min="10" max="3600" step="5" /></label><p class="hint">Target time estimates when scrolling reaches the end. It does not measure speech. Pace is capped at 300 wpm.</p></fieldset>
+<fieldset><legend>Script appearance</legend><label class="setting-row" for="settings-size">Text size (px)<input id="settings-size" data-setting="fontSizePx" type="number" min="18" max="96" step="2" /></label><label class="setting-row" for="line-spacing">Line spacing<input id="line-spacing" data-setting="lineHeight" type="number" min="1.2" max="2" step="0.1" /></label><div class="setting-group"><span id="alignment-label">Alignment</span><div id="alignment" class="radio-group" role="radiogroup" aria-labelledby="alignment-label"><label><input type="radio" name="alignment" data-setting="align" value="left" />Left</label><label><input type="radio" name="alignment" data-setting="align" value="center" />Center</label></div></div><label class="setting-row" for="mirror">Mirror script horizontally<input id="mirror" data-setting="mirror" type="checkbox" /></label><label class="setting-row" for="guide">Reading guide<input id="guide" data-setting="guide" type="checkbox" /></label></fieldset>
+<fieldset><legend>Reading session</legend><label class="setting-row" for="countdown-setting">Three-second countdown<input id="countdown-setting" data-setting="countdown" type="checkbox" /></label><label class="setting-row" for="keep-awake">Keep screen awake<input id="keep-awake" data-setting="keepAwake" type="checkbox" /></label><p class="hint">Wake lock depends on your browser and device. It cannot prevent every iOS recording interruption.</p><label id="fullscreen-setting-row" class="setting-row" for="fullscreen-setting" hidden>Start in fullscreen<input id="fullscreen-setting" data-setting="fullscreen" type="checkbox" /></label><button id="fullscreen-toggle" type="button" hidden>Enter fullscreen</button></fieldset>
+<fieldset><legend>Appearance</legend><div class="setting-group"><span id="theme-label">Theme</span><div id="theme" class="radio-group" role="radiogroup" aria-labelledby="theme-label"><label><input type="radio" name="theme" data-setting="theme" value="system" />System</label><label><input type="radio" name="theme" data-setting="theme" value="light" />Light</label><label><input type="radio" name="theme" data-setting="theme" value="dark" />Dark</label></div></div></fieldset>
+<details><summary>Keyboard shortcuts</summary><p class="hint">In the reader, outside text fields and sliders:</p><dl class="shortcuts"><dt>Space / K</dt><dd>Play or pause</dd><dt>Left / Right</dt><dd>Slower / faster</dd><dt>Up / Down</dt><dd>Seek one line while paused</dd><dt>PageUp / PageDown</dt><dd>Seek a screen while paused</dd><dt>Home / End</dt><dd>Seek to start / end while paused</dd><dt>R</dt><dd>Restart</dd><dt>M / G</dt><dd>Mirror / reading guide</dd><dt>− / =</dt><dd>Smaller / larger text</dd><dt>F</dt><dd>Fullscreen if supported</dd><dt>Escape</dt><dd>Close Settings, then fullscreen, then reader</dd></dl><p class="hint">Shortcuts ignore composition, editable fields, and Ctrl, Alt or Command. Focused buttons keep normal Space and Enter behavior.</p></details>
+<div class="settings-links"><a href="%BASE_URL%docs/">Read the docs</a><a href="%BASE_URL%third-party-notices.txt">Third-party notices</a></div><p class="hint">Scripts stay in this browser. Storage can be cleared or unavailable. GitHub Pages receives your IP address and request metadata when serving the site. Offline reopening is not guaranteed.</p><button id="erase-data" class="danger" type="button">Erase all local data</button>
+</div></dialog>
+<dialog id="confirm-dialog" aria-labelledby="confirm-title"><div class="dialog-heading"><h2 id="confirm-title">Clear script?</h2></div><p id="confirm-message">This will discard the current script.</p><div class="dialog-actions"><button id="confirm-cancel" type="button" autofocus>Cancel</button><button id="confirm-accept" class="danger" type="button">Clear</button></div></dialog>
+<dialog id="export-dialog" aria-labelledby="export-title"><div class="dialog-heading"><h2 id="export-title">Keep a copy</h2><button type="button" data-close="export-dialog">Done</button></div><div class="dialog-body"><label for="export-filename">File name</label><input id="export-filename" type="text" value="wolfcue-script.txt" /><div class="export-options"><button id="share-file" type="button" hidden>Share or save</button><button id="download-file" type="button">Download .txt</button><button id="copy-text" type="button">Copy text</button><button id="copy-script-link" type="button">Copy script link</button></div><p class="hint">In-app browsers may block downloads. Try Share or save, or copy the text instead.</p><p id="export-status" role="status"></p><label id="script-link-label" for="script-link" hidden>Script link</label><input id="script-link" type="text" readonly hidden /><p class="hint">A script link contains a copy of your text. Later edits in Notion do not update it. For long scripts, use a .txt file if the link will not open.</p><label id="copy-fallback-label" for="copy-fallback" hidden>Select and copy your script</label><textarea id="copy-fallback" readonly hidden></textarea></div></dialog>
+<noscript><p class="noscript">WolfCue needs JavaScript to edit and scroll scripts. No script is uploaded.</p></noscript>
+</body>
+</html>

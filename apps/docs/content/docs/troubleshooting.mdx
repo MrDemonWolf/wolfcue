@@ -1,0 +1,51 @@
+---
+title: Troubleshooting
+description: Check saving, screen sleep, file export, and paused playback.
+---
+
+## The screen sleeps while recording
+
+Enable **Keep screen awake** in Settings, then start or resume from a tap.
+If the browser denies wake lock, reading still works. Recording alone does not
+necessarily disable auto-lock in Moblin. Review your device's auto-lock and
+Low Power Mode settings and test a local recording before relying on it.
+
+## Download does nothing
+
+Some in-app browsers block file downloads. Try **Share or save** if offered,
+or **Copy text** and paste into a safe place. Confirm a file exists before
+clearing the original. Test each export option in Moblin.
+
+## A script link does not open or loads incomplete text
+
+Copy the full link using **Export**, then **Copy script link**. Open it in
+Moblin's private browser. If a messaging app shortened it or the browser
+rejects its length, use a UTF-8 `.txt` file instead. WolfCue validates incoming
+text before replacement and leaves your current script unchanged on an error.
+
+A Notion page URL does not load its contents into WolfCue. Copy the script
+text from Notion into WolfCue, then create a script link. The link is a
+snapshot; edits made later in Notion need a new link.
+
+## The script says not saved
+
+Storage may be blocked, full, or unavailable. The current in-memory text stays
+visible. Export it before closing the page. Do not erase or reload as a first
+troubleshooting step. Safari and Moblin have separate script storage.
+
+## Reading is paused after switching apps or hiding Moblin's browser
+
+That is intentional. Hidden pages pause, and returning does not automatically
+resume. Tap **Resume** when ready. Hidden and paused time are excluded from
+the active-reading timer.
+
+## Fullscreen is missing
+
+WolfCue hides the fullscreen setting when the API is unavailable. This is
+expected on iPhone and in Moblin's private browser. Use Moblin's large view.
+
+## Text wraps differently after resizing
+
+WolfCue keeps the current script line and reading fraction where possible,
+then recalculates pace from the new measured layout. Pause first if you need
+to make a careful adjustment. Use a rehearsal to check the result.

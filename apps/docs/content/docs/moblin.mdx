@@ -1,0 +1,47 @@
+---
+title: Use Moblin
+description: Read in the private browser on the phone that records.
+---
+
+## Choose the private browser
+
+Use Moblin's private in-app browser. Its **Browser scene widget** is a video
+effect and puts the page into the recorded output. WolfCue cannot detect which
+one you opened. Confirm your capture setup by reviewing a saved recording.
+
+## Large and small views
+
+Enter the WolfCue address in the large browser view and bookmark it there.
+Moblin's small view has a maximum side of roughly 250 points and can be smaller
+or rectangular. It has no address bar. WolfCue moves reader controls to the top
+and reserves the bottom-right corner for Moblin's native expand button.
+
+The same web view is reused when changing size or hiding it. WolfCue preserves
+the current line on resize. If WebKit reports that the page is hidden, WolfCue
+pauses. Returning never resumes automatically. Process termination can still
+lose unsaved state.
+
+## Open a script link
+
+In WolfCue, choose **Export**, then **Copy script link**. Open that link in
+Moblin's large private-browser view. Review the script and confirm replacement
+if different text is already saved. The script loads in the editor; select
+**Start reading** when ready.
+
+The link carries a text snapshot, not a Notion page URL or live document.
+Copy text from Notion into WolfCue before making the link. If a large link
+does not open, transfer the script as a UTF-8 `.txt` file instead.
+
+## Saving and screen sleep
+
+Paste, import, or open a script link inside Moblin: Safari has a separate
+storage area. **Saved on this device** means a local write succeeded, not
+that a permanent archive exists.
+
+Recording alone may not keep the screen awake in Moblin. **Keep screen awake**
+requests a browser wake lock when available. iOS can deny or release it. Check
+auto-lock, Low Power Mode, rotation, and recording continuity on your phone.
+
+Web code cannot place Moblin's native window, promise uninterrupted recording,
+or guarantee the private browser stays outside every capture configuration.
+Run the [device checklist](/docs/device-checklist).

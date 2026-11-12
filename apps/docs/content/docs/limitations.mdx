@@ -1,0 +1,29 @@
+---
+title: Limitations
+description: Browser limits and features deliberately outside this version.
+---
+
+WolfCue is not yet verified on a physical iPhone in Moblin. Emulated WebKit
+tests cannot prove recording continuity, smoothness while encoding video,
+or storage persistence after an app restart.
+
+- Moblin owns recording. WolfCue cannot start, stop, or inspect it.
+- There is no voice following, camera preview, cross-app overlay, cloud sync,
+  multiple-script library, or hosted public script library.
+- Script links contain a text snapshot, not a live Notion connection. Later
+  source edits need a new link. Browser or messaging limits can prevent large
+  links from opening; use a `.txt` file instead.
+- Target time is approximate scroll completion, not speech measurement.
+- Wake lock can be unavailable, denied, or released by iOS. It cannot prevent
+  every recording interruption.
+- Fullscreen is generally unavailable in iPhone browsers and Moblin's web view.
+- File download behavior depends on the host browser. A download click is not
+  proof that the file saved.
+- Local storage may fail, be cleared, or be evicted after inactivity. Export
+  important scripts. Safari and Moblin storage are separate.
+- Offline reopening is not guaranteed; this version has no service worker.
+- Web code cannot set Moblin's native window placement or prevent camera zoom
+  gestures from interacting with page gestures.
+
+Run the [device checklist](/docs/device-checklist) with synthetic text before
+relying on WolfCue for a real recording.

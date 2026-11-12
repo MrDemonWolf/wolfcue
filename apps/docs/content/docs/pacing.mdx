@@ -1,0 +1,28 @@
+---
+title: Pacing
+description: Choose words per minute or an approximate scroll completion time.
+---
+
+## Words per minute
+
+Choose 60 to 300 words per minute, in steps of 5. The default is 150. WolfCue
+measures the rendered script height and word count to calculate pixels per
+second. The editor estimate is word count divided by your chosen pace.
+Changing text size or viewport size recalculates the scroll speed to preserve
+that word rate.
+
+## Target time
+
+Choose 10 seconds to 60 minutes, in steps of 5 seconds. The default is 60
+seconds. This is the approximate time when scrolling reaches the end. It does
+not measure speech, pauses in your delivery, or how many words you actually read.
+
+Speed is recalculated when you resume, seek, change pace, or change layout.
+It uses the remaining distance and target time after active reading time.
+Paused and countdown time do not count. Seeking keeps the elapsed timer.
+
+To avoid an abrupt rush, target mode is capped at the speed corresponding to
+300 wpm. If the requested target needs a faster rate, WolfCue shows that the
+target will be exceeded and reports remaining time at the actual capped rate.
+
+Use a short rehearsal to find a comfortable pace.

@@ -1,0 +1,195 @@
+@import "./tokens.css";
+* {
+	box-sizing: border-box;
+}
+html {
+	-webkit-text-size-adjust: 100%;
+	background: var(--bg);
+	color: var(--text);
+	font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+body {
+	margin: 0;
+	min-width: 0;
+}
+body.reading {
+	overflow: hidden;
+}
+[hidden] {
+	/* biome-ignore lint/complexity/noImportantStyles: Hidden views must override layout display rules. */
+	display: none !important;
+}
+button,
+input,
+textarea,
+select {
+	font: inherit;
+	color: inherit;
+}
+button,
+select,
+summary {
+	cursor: pointer;
+	touch-action: manipulation;
+}
+button {
+	min-height: 44px;
+	min-width: 44px;
+	padding: 9px 15px;
+	border: 1px solid var(--line-strong);
+	border-radius: 9px;
+	background: var(--surface);
+	font-weight: 600;
+	line-height: 1.3;
+}
+button:hover {
+	border-color: var(--brand-text);
+}
+button:disabled {
+	opacity: 0.55;
+	cursor: default;
+}
+.primary {
+	background: var(--brand);
+	color: var(--brand-ink);
+	border-color: var(--brand);
+}
+.quiet {
+	border-color: transparent;
+	background: transparent;
+	color: var(--text-muted);
+}
+.danger {
+	color: var(--danger);
+}
+a {
+	color: var(--brand-text);
+	text-underline-offset: 3px;
+}
+a:hover {
+	text-decoration-thickness: 2px;
+}
+:focus-visible {
+	outline: 3px solid var(--focus);
+	outline-offset: 3px;
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
+	border: 1px solid var(--line-strong);
+	border-radius: 8px;
+	background: var(--surface);
+	min-height: 44px;
+	padding: 8px 10px;
+	min-width: 0;
+}
+input[type="checkbox"] {
+	appearance: auto;
+	width: 24px;
+	height: 24px;
+	margin: 10px;
+	accent-color: var(--brand);
+	flex: 0 0 auto;
+}
+input[type="range"] {
+	min-height: 44px;
+	accent-color: var(--brand);
+	margin: 0;
+	min-width: 0;
+}
+h1,
+h2,
+.wordmark {
+	font-family: "Montserrat Variable", system-ui, sans-serif;
+}
+h1,
+h2,
+p {
+	margin-top: 0;
+}
+h2 {
+	font-size: 18px;
+	letter-spacing: -0.04em;
+}
+.hint,
+.notice {
+	color: var(--text-muted);
+	font-size: 13px;
+	line-height: 1.55;
+}
+.notice:empty {
+	display: none;
+}
+.cue-mark {
+	display: inline-block;
+	width: 9px;
+	height: 18px;
+	background: var(--brand);
+	clip-path: polygon(0 0, 100% 50%, 0 100%);
+	flex: 0 0 auto;
+}
+.wordmark {
+	font-size: 23px;
+	font-weight: 750;
+	letter-spacing: -0.055em;
+	text-decoration: none;
+	color: var(--text);
+	display: inline-flex;
+	align-items: center;
+	gap: 9px;
+}
+.not-found {
+	max-width: 640px;
+	padding: 48px 24px;
+	margin: 10vh auto;
+	line-height: 1.7;
+}
+.not-found h1 {
+	margin-top: 32px;
+}
+.noscript {
+	padding: 20px;
+}
+
+.radio-group {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+.radio-group label {
+	min-height: 44px;
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 6px 10px;
+	border: 1px solid var(--line-strong);
+	border-radius: 8px;
+	font-size: 13px;
+	cursor: pointer;
+}
+.radio-group input {
+	width: 18px;
+	height: 18px;
+	margin: 0;
+	padding: 0;
+	min-height: 0;
+	accent-color: var(--brand);
+	flex: 0 0 auto;
+}
+.radio-group label:has(input:checked) {
+	border-color: var(--brand-text);
+	background: var(--bg);
+}
+
+.masthead {
+	flex-wrap: wrap;
+}
+.brand-logo {
+	width: 36px;
+	height: 36px;
+	object-fit: contain;
+	padding: 3px;
+	background: #ffffff;
+	border-radius: 8px;
+	flex: 0 0 auto;
+}

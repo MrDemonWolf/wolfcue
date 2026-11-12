@@ -1,0 +1,121 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+
+@theme {
+	--color-fd-primary: #0077a8;
+	--color-fd-primary-foreground: #ffffff;
+	--color-fd-background: #f7f7f7;
+	--color-fd-foreground: #1c1c1c;
+	--color-fd-muted: #ededed;
+	--color-fd-muted-foreground: #525252;
+	--color-fd-secondary: #ededed;
+	--color-fd-secondary-foreground: #1c1c1c;
+	--color-fd-accent: #e8f4fa;
+	--color-fd-accent-foreground: #00688f;
+	--color-fd-card: #ffffff;
+	--color-fd-card-foreground: #1c1c1c;
+	--color-fd-popover: #ffffff;
+	--color-fd-popover-foreground: #1c1c1c;
+	--color-fd-border: #d4d4d4;
+	--color-fd-ring: #0077a8;
+	--font-sans: "Inter Variable", system-ui, sans-serif;
+}
+.dark {
+	--color-fd-primary: #00aced;
+	--color-fd-primary-foreground: #04121f;
+	--color-fd-background: #171717;
+	--color-fd-foreground: #f5f5f5;
+	--color-fd-muted: #242424;
+	--color-fd-muted-foreground: #b8b8b8;
+	--color-fd-secondary: #242424;
+	--color-fd-secondary-foreground: #f5f5f5;
+	--color-fd-accent: #303030;
+	--color-fd-accent-foreground: #7fd7ff;
+	--color-fd-card: #242424;
+	--color-fd-card-foreground: #f5f5f5;
+	--color-fd-popover: #242424;
+	--color-fd-popover-foreground: #f5f5f5;
+	--color-fd-border: #3d3d3d;
+	--color-fd-ring: #7fd7ff;
+}
+body {
+	font-family: "Inter Variable", system-ui, sans-serif;
+}
+h1,
+h2,
+h3 {
+	font-family: "Montserrat Variable", system-ui, sans-serif;
+	letter-spacing: -0.025em;
+}
+:focus-visible {
+	outline: 3px solid var(--color-fd-ring);
+	outline-offset: 3px;
+}
+.docs-footer {
+	margin-top: 3rem;
+	padding-top: 1.5rem;
+	border-top: 1px solid var(--color-fd-border);
+	color: var(--color-fd-muted-foreground);
+	font-size: 0.8rem;
+	line-height: 1.6;
+}
+.docs-footer p {
+	margin: 0;
+}
+.docs-footer .affiliation {
+	margin-bottom: 1.25rem;
+	font-size: 0.75rem;
+}
+.docs-footer .footer-bottom {
+	border-top: 1px solid var(--color-fd-border);
+	padding-top: 1rem;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem 1.5rem;
+}
+.docs-footer .footer-credit {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.25rem 0.75rem;
+}
+.docs-footer .footer-build {
+	font-family: ui-monospace, monospace;
+	font-size: 0.7rem;
+}
+.docs-footer a {
+	color: var(--color-fd-accent-foreground);
+	text-decoration: underline;
+}
+.docs-footer nav {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0 1.25rem;
+}
+.docs-footer nav a {
+	display: inline-flex;
+	min-height: 44px;
+	align-items: center;
+}
+
+.prose,
+article {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+pre {
+	max-width: 100%;
+	overflow: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		scroll-behavior: auto;
+		animation-duration: 0.01ms;
+		transition-duration: 0.01ms;
+	}
+}

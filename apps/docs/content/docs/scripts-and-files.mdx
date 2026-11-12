@@ -1,0 +1,55 @@
+---
+title: Scripts and files
+description: Import UTF-8 text, copy a script link, and keep a backup.
+---
+
+## Paste and import
+
+Paste arbitrary Unicode, including names, emoji, and non-English scripts.
+The interface is English, but your script does not need to be.
+
+**Import** accepts a `.txt` filename, case-insensitively, up to 1 MiB
+(1,048,576 bytes, inclusive). The file must decode as UTF-8, contain no NUL
+characters, and contain non-whitespace text. A leading UTF-8 BOM is handled;
+CRLF and CR line endings become LF. UTF-16 files are rejected.
+
+Validation finishes before the current script changes. Importing different
+content over a non-empty script requires confirmation. Cancel, an invalid
+file, or a read error keeps the current script. A newer edit or import takes
+priority over a stale asynchronous file read.
+
+Script content is rendered as plain text. HTML tags are never executed.
+
+## Export
+
+**Export** offers the options your browser supports:
+
+- **Copy script link** copies a link containing a snapshot of the script text.
+  Open it in Moblin's private browser to load the script there.
+- **Share or save** opens the system share sheet when file sharing is supported.
+- **Download .txt** starts a file download. Some in-app browsers block it;
+  clicking Download does not prove a file was saved.
+- **Copy text** uses the clipboard when available, with selectable text as a
+  fallback. Keep an actual backup file for important scripts.
+
+Moblin may support the file picker and share sheet but block downloads.
+Test each option on your phone. Clear and erase actions ask for confirmation.
+Storage can be cleared by the browser, so do not use it as your only archive.
+
+## Script links
+
+Choose **Export**, then **Copy script link**. The link stores the text after
+`#script=` and works without a server or sync account. Anyone with the link
+can read its text. WolfCue reads the fragment in the receiving browser, then
+removes it from the address. It never starts the reader automatically.
+
+Incoming links follow the same UTF-8, 1 MiB, NUL, and non-empty rules as file
+imports. Different non-empty text requires confirmation before replacement.
+Cancel or an invalid link preserves the current script.
+
+This copies the text currently in WolfCue. A Notion page URL does not import
+a script or create a live connection: copy the page's script text into
+WolfCue before making the link. Later edits need a new link.
+
+A browser or messaging app may reject or shorten large links even when the
+script is within the 1 MiB import limit. Use a `.txt` file in that case.

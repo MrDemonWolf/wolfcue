@@ -1,0 +1,45 @@
+name: Update LICENSE year
+
+on:
+  schedule:
+    - cron: "0 6 1 1 *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update-year:
+    if: github.repository == 'MrDemonWolf/wolfcue'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Update copyright year
+        run: |
+          current_year="$(date +%Y)"
+          sed -i "s/Copyright (c) [0-9]\{4\} MrDemonWolf, Inc./Copyright (c) $current_year MrDemonWolf, Inc./" LICENSE
+      - name: Open a pull request if changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git diff --quiet LICENSE && exit 0
+          current_year="$(date +%Y)"
+          branch="chore/license-year-$current_year"
+          git config user.name "MrDemonWolf, Inc."
+          git config user.email "admin@mrdemonwolf.com"
+          git switch -c "$branch"
+          git add LICENSE
+          git commit -m "chore: update LICENSE copyright year to $current_year"
+          gh auth setup-git
+          git push -u origin "$branch"
+          if [ -z "$(gh pr list --head "$branch" --state open --json number --jq '.[].number')" ]; then
+            gh pr create --base main --head "$branch" --fill
+          fi
