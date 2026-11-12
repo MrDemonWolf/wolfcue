@@ -188,7 +188,7 @@ test("reader reflows at 320 CSS pixels with 200 percent text and custom spacing"
 	page,
 }) => {
 	await page.setViewportSize({ width: 320, height: 256 });
-	await openApp(page);
+	await openApp(page, { paceMode: "target", targetSec: 3600 });
 	await start(page);
 	await page.locator("#toggle-play").click();
 	await page.evaluate(() => {
@@ -228,6 +228,7 @@ test("reader reflows at 320 CSS pixels with 200 percent text and custom spacing"
 		"#restart",
 		"#exit-reader",
 		"#seek",
+		"#settings-target",
 		"#settings-size",
 		"#keep-awake",
 	]) {
@@ -249,6 +250,16 @@ test("reader reflows at 320 CSS pixels with 200 percent text and custom spacing"
 				}),
 			)
 			.toBeLessThanOrEqual(1);
+		if (selector === "#settings-target" || selector === "#settings-size") {
+			const field = await page.locator(selector).evaluate((element) => ({
+				width: element.clientWidth,
+				scroll: element.scrollWidth,
+			}));
+			expect(
+				field.scroll,
+				`${selector} enlarged value fits`,
+			).toBeLessThanOrEqual(field.width);
+		}
 		const geometry = await page.locator(selector).evaluate((element) => ({
 			control: element.getBoundingClientRect().toJSON(),
 			header: document
