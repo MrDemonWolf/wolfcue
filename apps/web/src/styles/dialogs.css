@@ -204,3 +204,33 @@ summary {
 	display: block;
 	margin-bottom: 8px;
 }
+
+#settings-dialog fieldset {
+	margin-bottom: 28px;
+}
+#settings-dialog legend {
+	font-size: 14px;
+	margin-bottom: 12px;
+}
+#settings-dialog .setting-row {
+	min-height: 60px;
+	padding: 8px 0;
+}
+#settings-dialog .setting-group {
+	padding: 12px 0 16px;
+}
+#settings-dialog fieldset .hint {
+	margin: 12px 0 16px;
+}
+#fullscreen-toggle {
+	margin-top: 12px;
+}
+@media (max-width: 300px), (max-height: 300px) {
+	#settings-dialog fieldset {
+		margin-bottom: 22px;
+	}
+	#settings-dialog .setting-row {
+		min-height: 56px;
+		padding: 6px 0;
+	}
+}

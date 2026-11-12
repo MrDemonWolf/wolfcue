@@ -190,3 +190,72 @@ test("copy script link is reachable before filename fields in a compact export d
 	await page.locator("#export").click();
 	await expect(page.locator("#script-link-hint")).toBeHidden();
 });
+
+test("supported fullscreen controls have room and remain reachable in Settings", async ({
+	page,
+}, info) => {
+	test.skip(
+		info.project.name !== "iphone-portrait",
+		"Explicit viewport matrix",
+	);
+	await page.addInitScript(() => {
+		Object.defineProperty(document, "fullscreenEnabled", {
+			value: true,
+			configurable: true,
+		});
+		Element.prototype.requestFullscreen = async () => {};
+	});
+	await page.setViewportSize({ width: 584, height: 890 });
+	await openApp(page);
+	await page.locator("#editor-settings").click();
+	const dialog = page.locator("#settings-dialog");
+	const row = page.locator("#fullscreen-setting-row");
+	const button = page.locator("#fullscreen-toggle");
+	const wakeRow = page.locator("#keep-awake").locator("..");
+	const hint = page
+		.locator("fieldset")
+		.filter({ has: page.locator("#keep-awake") })
+		.locator(".hint");
+	const done = page.getByRole("button", { name: "Done", exact: true });
+	await expect(row).toBeVisible();
+	await expect(button).toHaveAccessibleName("Enter fullscreen");
+	for (const viewport of [
+		{ width: 584, height: 890 },
+		{ width: 200, height: 180 },
+	]) {
+		await page.setViewportSize(viewport);
+		const boxes = await Promise.all(
+			[wakeRow, hint, row, button].map((element) => element.boundingBox()),
+		);
+		const [wakeBox, hintBox, rowBox, buttonBox] = boxes;
+		if (!wakeBox || !hintBox || !rowBox || !buttonBox)
+			throw new Error("Fullscreen settings are missing");
+		expect(hintBox.y - (wakeBox.y + wakeBox.height)).toBeGreaterThanOrEqual(8);
+		expect(rowBox.y - (hintBox.y + hintBox.height)).toBeGreaterThanOrEqual(8);
+		expect(buttonBox.y - (rowBox.y + rowBox.height)).toBeGreaterThanOrEqual(8);
+		expect(buttonBox.width).toBeGreaterThanOrEqual(44);
+		expect(buttonBox.height).toBeGreaterThanOrEqual(44);
+		for (const control of [page.locator("#fullscreen-setting"), button]) {
+			await control.focus();
+			await expect(control).toBeFocused();
+			const controlBox = await control.boundingBox();
+			const headerBox = await dialog.locator(".dialog-heading").boundingBox();
+			const dialogBox = await dialog.boundingBox();
+			if (!controlBox || !headerBox || !dialogBox)
+				throw new Error("Settings geometry is missing");
+			expect(controlBox.y).toBeGreaterThanOrEqual(
+				headerBox.y + headerBox.height,
+			);
+			expect(controlBox.y + controlBox.height).toBeLessThanOrEqual(
+				dialogBox.y + dialogBox.height,
+			);
+			await expect(done).toBeVisible();
+			const doneBox = await done.boundingBox();
+			if (!doneBox) throw new Error("Done button is missing");
+			expect(doneBox.y).toBeGreaterThanOrEqual(dialogBox.y);
+			expect(doneBox.y + doneBox.height).toBeLessThanOrEqual(
+				dialogBox.y + dialogBox.height,
+			);
+		}
+	}
+});
