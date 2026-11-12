@@ -55,3 +55,30 @@ test("script and preferences persist and erase removes all three keys", async ({
 		),
 	).toEqual([null, null, null]);
 });
+
+test("pending script saves stay truthful when pace changes before the debounce", async ({
+	page,
+}) => {
+	await page.clock.install();
+	await page.goto("./");
+	await page.clock.pauseAt(
+		new Date(await page.evaluate(() => Date.now() + 1000)),
+	);
+	await page.locator("#script").fill(SCRIPT);
+	await expect(page.locator("#save-status")).toHaveText("Saving...");
+	await page.locator('#pace-mode input[value="target"]').check();
+	await expect(page.locator("#save-status")).toHaveText("Saving...");
+	expect(
+		await page.evaluate(() => localStorage.getItem("wolfcue:v1:script")),
+	).toBeNull();
+	await page.clock.runFor(399);
+	await expect(page.locator("#save-status")).toHaveText("Saving...");
+	expect(
+		await page.evaluate(() => localStorage.getItem("wolfcue:v1:script")),
+	).toBeNull();
+	await page.clock.runFor(1);
+	await expect(page.locator("#save-status")).toHaveText("Saved on this device");
+	expect(
+		await page.evaluate(() => localStorage.getItem("wolfcue:v1:script")),
+	).toBe(SCRIPT);
+});

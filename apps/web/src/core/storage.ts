@@ -20,12 +20,14 @@ export function createStore(storage: StorageLike | null) {
 	let script = "";
 	let dirty = false;
 	let prefs = { ...DEFAULT_SETTINGS };
-	let scriptSaved = !!storage;
+	let scriptStatus: "saved" | "pending" | "not-saved" = storage
+		? "saved"
+		: "not-saved";
 	let prefsSaved = !!storage;
 	try {
 		script = storage?.getItem(STORAGE_KEYS.script) ?? "";
 	} catch {
-		scriptSaved = false;
+		scriptStatus = "not-saved";
 	}
 	try {
 		const json = storage?.getItem(STORAGE_KEYS.prefs);
@@ -46,13 +48,13 @@ export function createStore(storage: StorageLike | null) {
 		get prefs() {
 			return prefs;
 		},
-		get status(): "saved" | "not-saved" {
-			return scriptSaved && prefsSaved ? "saved" : "not-saved";
+		get status(): "saved" | "pending" | "not-saved" {
+			return prefsSaved ? scriptStatus : "not-saved";
 		},
 		setScript(text: string) {
 			script = text;
 			dirty = true;
-			scriptSaved = false;
+			if (scriptStatus !== "not-saved") scriptStatus = "pending";
 		},
 		flush() {
 			if (!dirty) return;
@@ -60,9 +62,9 @@ export function createStore(storage: StorageLike | null) {
 				if (!storage) return;
 				storage.setItem(STORAGE_KEYS.script, script);
 				dirty = false;
-				scriptSaved = true;
+				scriptStatus = "saved";
 			} catch {
-				scriptSaved = false;
+				scriptStatus = "not-saved";
 			}
 		},
 		savePrefs(settings: Settings) {
@@ -82,13 +84,13 @@ export function createStore(storage: StorageLike | null) {
 			dirty = false;
 			script = "";
 			prefs = { ...DEFAULT_SETTINGS };
-			scriptSaved = !!storage;
+			scriptStatus = storage ? "saved" : "not-saved";
 			prefsSaved = !!storage;
 			for (const key of Object.values(STORAGE_KEYS)) {
 				try {
 					storage?.removeItem(key);
 				} catch {
-					scriptSaved = false;
+					scriptStatus = "not-saved";
 					prefsSaved = false;
 				}
 			}

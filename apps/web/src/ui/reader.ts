@@ -67,6 +67,8 @@ export function createReader(
 	}
 	function render() {
 		if (!opened) return;
+		const phaseChanged = reader.dataset.phase !== state.phase;
+		const capChanged = byId("over-target").hidden !== !state.overTarget;
 		reader.dataset.phase = state.phase;
 		reader.dataset.position = String(state.positionPx);
 		reader.dataset.elapsed = String(state.elapsedMs);
@@ -96,7 +98,7 @@ export function createReader(
 		const remaining = `${formatClock(remainingSec(state.positionPx, state.layout.endPx, state.pxPerSec), "ceil")} left`;
 		writeText(byId("remaining"), remaining);
 		writeText(byId("compact-remaining"), remaining);
-		writeText(byId("over-target"), `Target capped at 300 wpm · ${remaining}`);
+		writeText(byId("over-target"), "Pace capped");
 		writeText(
 			byId("reader-state"),
 			counting
@@ -129,13 +131,19 @@ export function createReader(
 					) ?? 1,
 				),
 			);
+		if (phaseChanged || capChanged) queueMicrotask(measure);
 	}
 	function measure() {
 		if (!opened || stage.clientHeight === 0 || content.clientWidth === 0)
 			return;
 		cacheAnchor();
 		stageHeight = stage.clientHeight;
-		guideOffset = Math.round(stageHeight * 0.38);
+		const settings = getSettings();
+		const lineHeight = settings.fontSizePx * settings.lineHeight;
+		guideOffset = Math.min(
+			Math.round(stageHeight * 0.38),
+			Math.max(0, Math.floor(stageHeight - lineHeight)),
+		);
 		stage.style.setProperty("--guide-y", `${guideOffset}px`);
 		blocks = Array.from(content.children, (block) => {
 			const element = block as HTMLElement;
@@ -178,9 +186,11 @@ export function createReader(
 		cancelAnimationFrame(raf);
 		cacheAnchor();
 		render();
+		queueMicrotask(measure);
 	}
 	function notice(message: string) {
 		writeText(byId("reader-notice"), message);
+		if (opened) queueMicrotask(measure);
 	}
 	function wantsWakeLock() {
 		return (
@@ -203,9 +213,7 @@ export function createReader(
 		if (wakeLock || wakePending) return;
 		if (!("wakeLock" in navigator)) {
 			if (!wakeNoticeShown) {
-				notice(
-					"Keep screen awake is unavailable. Check your device's Auto-Lock setting.",
-				);
+				notice("Screen may lock.");
 				wakeNoticeShown = true;
 			}
 			return;
@@ -227,9 +235,7 @@ export function createReader(
 			);
 		} catch {
 			if (!wakeNoticeShown) {
-				notice(
-					"Screen wake lock was not granted. Check your device's Auto-Lock setting.",
-				);
+				notice("Screen may lock.");
 				wakeNoticeShown = true;
 			}
 		} finally {
@@ -242,7 +248,7 @@ export function createReader(
 			if (document.fullscreenElement) await document.exitFullscreen();
 			else await document.documentElement.requestFullscreen();
 		} catch {
-			notice("Fullscreen is unavailable. You can keep reading here.");
+			notice("Fullscreen unavailable.");
 		}
 	}
 	document.addEventListener("fullscreenchange", () => {
@@ -492,7 +498,7 @@ export function createReader(
 	function onHidden() {
 		if (opened) {
 			pauseReader();
-			notice("Paused after leaving the page. Resume when you are ready.");
+			notice("Paused after leaving.");
 		}
 		void syncWakeLock();
 	}

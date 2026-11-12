@@ -31,7 +31,9 @@ function updateSaveStatus() {
 		byId("save-status"),
 		store.status === "saved"
 			? "Saved on this device"
-			: "Not saved: storage is unavailable",
+			: store.status === "pending"
+				? "Saving..."
+				: "Not saved: storage is unavailable",
 	);
 }
 function flushScript() {
@@ -61,8 +63,8 @@ function updateControls() {
 	writeText(
 		byId("pace-hint"),
 		settings.paceMode === "target"
-			? "Approximate scroll completion, not a measurement of speech. Capped at 300 wpm."
-			: "A comfortable starting point. Adjust as you read.",
+			? "Scroll completion, not speech timing. Maximum 300 wpm."
+			: "",
 	);
 	updateStats();
 }
@@ -98,10 +100,12 @@ function saveScript(immediate = false) {
 	if (immediate) flushScript();
 	else saveTimer = setTimeout(flushScript, 400);
 	updateStats();
+	updateSaveStatus();
 }
 function openSettings() {
 	invalidateImport();
 	if (reader.opened) reader.pause();
+	settingsDialog.dataset.context = reader.opened ? "reader" : "editor";
 	settingsDialog.showModal();
 }
 function ask(
@@ -301,6 +305,7 @@ byId("export").addEventListener("click", () => {
 	byId<HTMLInputElement>("export-filename").value = filename;
 	byId("script-link").hidden = true;
 	byId("script-link-label").hidden = true;
+	byId("script-link-hint").hidden = true;
 	byId("copy-fallback").hidden = true;
 	byId("copy-fallback-label").hidden = true;
 	writeText(byId("export-status"), "");
@@ -410,6 +415,7 @@ byId("copy-script-link").addEventListener("click", async () => {
 	field.value = result.url;
 	field.hidden = false;
 	byId("script-link-label").hidden = false;
+	byId("script-link-hint").hidden = false;
 	try {
 		await navigator.clipboard.writeText(result.url);
 		writeText(
@@ -434,7 +440,7 @@ function loadScriptLink() {
 	if (!incoming.ok) {
 		const message = `${incoming.reason} Your script has not changed.`;
 		fileStatus(message);
-		if (reader.opened) writeText(byId("reader-notice"), message);
+		if (reader.opened) writeText(byId("reader-notice"), "Link invalid.");
 		return;
 	}
 	const token = importGeneration;

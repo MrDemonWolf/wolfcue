@@ -242,8 +242,14 @@
 	}
 }
 @media (max-width: 300px), (max-height: 300px) {
+	.reader-chrome {
+		display: grid;
+		grid-template-columns: max-content minmax(0, 1fr);
+	}
 	.reader-topbar {
-		padding: 4px;
+		grid-column: 1 / -1;
+		grid-row: 1;
+		padding: 0 4px;
 		gap: 5px;
 	}
 	.reader-topbar button {
@@ -252,65 +258,71 @@
 	}
 	.reader-metrics {
 		flex: 1;
+		flex-direction: column;
 		justify-content: center;
-		gap: 5px;
+		gap: 0;
 		font-size: 11px;
 	}
-	#remaining {
-		display: none;
+	.progress-track {
+		grid-column: 1 / -1;
+		grid-row: 2;
+		position: static;
 	}
 	.paused-controls {
-		padding: 4px 4px 0;
+		grid-column: 1 / -1;
+		grid-row: 3;
+		flex-wrap: nowrap;
+		padding: 0 4px;
 		gap: 4px;
-		flex-wrap: wrap;
 	}
 	.paused-controls button {
 		padding: 7px 10px;
 		font-size: 12px;
 	}
-	.seek-label {
-		flex-basis: 100%;
-		gap: 8px;
+	.seek-label,
+	#reader[data-phase="paused"] .paused-controls .seek-label,
+	#reader[data-phase="finished"] .paused-controls .seek-label {
+		display: flex;
+		flex-basis: auto;
+		font-size: 0;
+		gap: 0;
 	}
 	.reader-status {
-		padding: 3px 8px;
-		font-size: 10px;
+		display: contents;
 	}
-	#reader-pace {
+	#reader-state {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+	#remaining,
+	#reader-pace,
+	#compact-remaining {
 		display: none;
 	}
-	#compact-remaining {
-		display: inline;
-	}
 	#over-target {
+		grid-column: 1;
+		grid-row: 4;
+		padding: 0 4px;
 		font-size: 10px;
+		line-height: 13px;
+	}
+	.reader-notice {
+		grid-column: 2;
+		grid-row: 4;
+		min-width: 0;
+		padding: 0 4px;
+		font-size: 10px;
+		line-height: 13px;
 	}
 	#script-content {
 		padding-left: 14px;
 		padding-right: 14px;
-	}
-	.reader-notice {
-		padding: 0 8px 3px;
-		font-size: 10px;
-		line-height: 1.3;
-	}
-}
-@media (max-height: 210px) {
-	.paused-controls {
-		padding-top: 0;
-	}
-	.seek-label {
-		flex-basis: auto;
-	}
-	.seek-label {
-		font-size: 0;
-	}
-	#seek {
-		min-width: 40px;
-	}
-	.reader-status {
-		padding-top: 0;
-		padding-bottom: 1px;
 	}
 }
 

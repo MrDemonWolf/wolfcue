@@ -3,11 +3,12 @@ dialog {
 	background: var(--surface);
 	border: 1px solid var(--line-strong);
 	border-radius: 14px;
-	padding: 20px;
+	padding: 0;
 	width: min(520px, calc(100% - 24px));
 	max-height: calc(100vh - 24px);
 	overflow: auto;
 	overscroll-behavior: contain;
+	scroll-padding-top: 84px;
 }
 dialog::backdrop {
 	background: #000000;
@@ -17,11 +18,16 @@ body:has(dialog[open]) {
 	overflow: hidden;
 }
 .dialog-heading {
+	position: sticky;
+	top: 0;
+	z-index: 3;
+	background: var(--surface);
+	border-bottom: 1px solid var(--line);
+	padding: 16px 20px;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	gap: 12px;
-	margin-bottom: 16px;
 }
 .dialog-heading h2 {
 	margin: 0;
@@ -29,6 +35,10 @@ body:has(dialog[open]) {
 }
 .dialog-body {
 	min-width: 0;
+	padding: 20px;
+}
+#settings-dialog[data-context="editor"] [data-reader-only] {
+	display: none;
 }
 .dialog-body > label {
 	display: block;
@@ -66,6 +76,7 @@ legend {
 .setting-row > input[type="number"] {
 	width: 85px;
 	flex: 0 0 auto;
+	font-size: 16px;
 }
 fieldset .hint {
 	margin: 8px 0 0;
@@ -96,12 +107,23 @@ summary {
 	margin: 20px 0 14px;
 	font-size: 13px;
 }
-.dialog-actions,
-.export-options {
+.dialog-actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 10px;
 	margin-top: 20px;
+}
+.export-options {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px;
+	margin-bottom: 16px;
+}
+.export-file-hint {
+	margin: 10px 0 0;
+}
+#export-status:empty {
+	display: none;
 }
 #export-status {
 	font-size: 13px;
@@ -116,8 +138,15 @@ summary {
 }
 @media (max-width: 300px), (max-height: 300px) {
 	dialog {
-		padding: 12px;
 		border-radius: 10px;
+		scroll-padding-top: 72px;
+	}
+	.dialog-heading,
+	.dialog-body {
+		padding: 12px;
+	}
+	.export-options {
+		grid-template-columns: 1fr;
 	}
 	.dialog-heading h2 {
 		font-size: 18px;

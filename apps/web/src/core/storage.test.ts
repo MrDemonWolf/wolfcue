@@ -39,11 +39,13 @@ test("getter throws and denied reads fall back to memory", () => {
 	});
 	expect(store.status).toBe("not-saved");
 	store.setScript("private words");
+	expect(store.status).toBe("not-saved");
 	store.flush();
 	expect(store.script).toBe("private words");
 	expect(store.status).toBe("not-saved");
 	const memory = createStore(null);
 	memory.setScript("memory");
+	expect(memory.status).toBe("not-saved");
 	memory.flush();
 	memory.savePrefs(DEFAULT_SETTINGS);
 	expect(memory.script).toBe("memory");
@@ -64,7 +66,9 @@ test("script flush saves exact text and preferences stay separate", () => {
 	expect(getStorage(() => storage)).toBe(storage);
 	s.setScript("日本語 🐺");
 	expect(storage.getItem(STORAGE_KEYS.script)).toBeNull();
-	expect(s.status).toBe("not-saved");
+	expect(s.status).toBe("pending");
+	s.savePrefs({ ...DEFAULT_SETTINGS, wpm: 200 });
+	expect(s.status).toBe("pending");
 	s.flush();
 	expect(s.status).toBe("saved");
 	expect(storage.getItem(STORAGE_KEYS.script)).toBe("日本語 🐺");
@@ -128,14 +132,41 @@ test("a failed flush retries the current script and erase cannot recreate its ke
 	};
 	const store = createStore(storage);
 	store.setScript("first");
+	expect(store.status).toBe("pending");
 	store.flush();
+	expect(store.status).toBe("not-saved");
 	storage.setItem = write;
 	store.setScript("latest");
+	expect(store.status).toBe("not-saved");
 	store.flush();
 	expect(store.status).toBe("saved");
 	expect(storage.data.get(STORAGE_KEYS.script)).toBe("latest");
 	store.setScript("pending");
+	expect(store.status).toBe("pending");
 	store.erase();
+	expect(store.status).toBe("saved");
 	store.flush();
 	expect(storage.data.size).toBe(0);
+});
+
+test("preference failures override pending scripts until preferences save successfully", () => {
+	const storage = fake();
+	const write = storage.setItem;
+	storage.setItem = (key, value) => {
+		if (key === STORAGE_KEYS.prefs) throw Error("preferences blocked");
+		write(key, value);
+	};
+	const store = createStore(storage);
+	store.setScript("pending script");
+	expect(store.status).toBe("pending");
+	store.savePrefs(DEFAULT_SETTINGS);
+	expect(store.status).toBe("not-saved");
+	store.setScript("latest script");
+	expect(store.status).toBe("not-saved");
+	store.flush();
+	expect(store.status).toBe("not-saved");
+	expect(storage.getItem(STORAGE_KEYS.script)).toBe("latest script");
+	storage.setItem = write;
+	store.savePrefs(DEFAULT_SETTINGS);
+	expect(store.status).toBe("saved");
 });
