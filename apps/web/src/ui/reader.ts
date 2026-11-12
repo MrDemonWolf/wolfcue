@@ -32,6 +32,10 @@ export function createReader(
 ) {
 	const reader = byId("reader");
 	const wideScreen = matchMedia("(min-width:700px)");
+	const compactScreen = matchMedia("(max-width:300px), (max-height:300px)");
+	const sessionControls = byId("paused-controls");
+	const sessionSettings = byId("reader-session-controls");
+	const settingsDialog = byId<HTMLDialogElement>("settings-dialog");
 	const editor = byId("editor");
 	const stage = byId("stage");
 	const content = byId("script-content");
@@ -65,8 +69,31 @@ export function createReader(
 	function cacheAnchor() {
 		anchor = captureAnchor(blocks, state.positionPx, state.layout.endPx);
 	}
+	function placeSessionControls() {
+		const inSettings =
+			compactScreen.matches ||
+			(settingsDialog.open &&
+				sessionControls.parentElement === sessionSettings);
+		const parent = inSettings ? sessionSettings : byId("reader-chrome");
+		if (sessionControls.parentElement !== parent) {
+			const focused =
+				document.activeElement instanceof HTMLElement &&
+				sessionControls.contains(document.activeElement)
+					? document.activeElement
+					: null;
+			if (inSettings) parent.append(sessionControls);
+			else parent.insertBefore(sessionControls, byId("reader-status"));
+			if (focused) {
+				if (inSettings && !settingsDialog.open)
+					byId("reader-settings").focus({ preventScroll: true });
+				else focused.focus({ preventScroll: true });
+			}
+		}
+		sessionSettings.hidden = !opened || !inSettings;
+	}
 	function render() {
 		if (!opened) return;
+		placeSessionControls();
 		const phaseChanged = reader.dataset.phase !== state.phase;
 		const capChanged = byId("over-target").hidden !== !state.overTarget;
 		reader.dataset.phase = state.phase;
@@ -87,12 +114,18 @@ export function createReader(
 						: "Resume",
 		);
 		toggle.disabled = finished;
-		byId("paused-controls").hidden =
-			(playing || counting) && !wideScreen.matches;
+		sessionControls.hidden =
+			sessionControls.parentElement !== sessionSettings &&
+			(playing || counting) &&
+			!wideScreen.matches;
 		slider.disabled = playing || counting;
 		const ratio =
 			state.layout.endPx > 0 ? state.positionPx / state.layout.endPx : 0;
 		slider.value = String(Math.round(ratio * 1000));
+		slider.setAttribute(
+			"aria-valuetext",
+			`${Math.round(ratio * 100)}% through script`,
+		);
 		writeText(byId("elapsed"), formatClock(state.elapsedMs / 1000, "floor"));
 		writeText(byId("percent"), `${Math.round(ratio * 100)}%`);
 		const remaining = `${formatClock(remainingSec(state.positionPx, state.layout.endPx, state.pxPerSec), "ceil")} left`;
@@ -139,7 +172,10 @@ export function createReader(
 		cacheAnchor();
 		stageHeight = stage.clientHeight;
 		const settings = getSettings();
-		const lineHeight = settings.fontSizePx * settings.lineHeight;
+		const typography = getComputedStyle(content);
+		const lineHeight =
+			Number.parseFloat(typography.lineHeight) ||
+			Number.parseFloat(typography.fontSize) * settings.lineHeight;
 		guideOffset = Math.min(
 			Math.round(stageHeight * 0.38),
 			Math.max(0, Math.floor(stageHeight - lineHeight)),
@@ -159,6 +195,14 @@ export function createReader(
 		render();
 	}
 	wideScreen.addEventListener("change", render);
+	compactScreen.addEventListener("change", render);
+	settingsDialog.addEventListener("close", () => {
+		placeSessionControls();
+		if (opened) {
+			render();
+			queueMicrotask(measure);
+		}
+	});
 	window.addEventListener("resize", measure);
 	new ResizeObserver(measure).observe(stage);
 	new ResizeObserver(measure).observe(content);
@@ -301,8 +345,10 @@ export function createReader(
 		void startSession(getSettings().fullscreen);
 	}
 	function close() {
+		if (settingsDialog.open) settingsDialog.close();
 		pauseReader();
 		opened = false;
+		sessionSettings.hidden = true;
 		generation++;
 		showView(reader, false);
 		content.replaceChildren();
@@ -329,6 +375,8 @@ export function createReader(
 	}
 	function restartReader() {
 		if (state.phase === "countdown") return;
+		if (settingsDialog.open) settingsDialog.close();
+		reader.focus({ preventScroll: true });
 		pauseReader();
 		state = restart(state);
 		cacheAnchor();
@@ -415,8 +463,13 @@ export function createReader(
 		}
 	}
 	document.addEventListener("keydown", (event) => {
-		if (!opened || document.querySelector("dialog[open]")) return;
 		const target = event.target instanceof Element ? event.target : null;
+		if (
+			!opened ||
+			document.querySelector("dialog[open]") ||
+			(!reader.contains(target) && !reader.contains(document.activeElement))
+		)
+			return;
 		const targetKind = target?.closest(
 			"input,textarea,select,[contenteditable]",
 		)
@@ -455,6 +508,7 @@ export function createReader(
 	stage.addEventListener(
 		"wheel",
 		(event) => {
+			if (event.ctrlKey) return;
 			event.preventDefault();
 			seek(state.positionPx + event.deltaY);
 		},
@@ -468,7 +522,8 @@ export function createReader(
 		seekable: boolean;
 	} | null = null;
 	stage.addEventListener("pointerdown", (event) => {
-		if (event.button !== 0) return;
+		if (event.button !== 0 || (pointer && pointer.id !== event.pointerId))
+			return;
 		pointer = {
 			id: event.pointerId,
 			y: event.clientY,

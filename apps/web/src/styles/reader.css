@@ -100,7 +100,7 @@
 	flex: 1;
 	min-height: 0;
 	overflow: hidden;
-	touch-action: none;
+	touch-action: pinch-zoom;
 	cursor: pointer;
 }
 #script-transform {
@@ -130,7 +130,7 @@
 	left: 0;
 	right: 0;
 	border-top: 1px solid var(--brand);
-	opacity: 0.7;
+	opacity: 1;
 	pointer-events: none;
 }
 #reading-guide::before {
@@ -175,6 +175,28 @@
 }
 .reader-notice:empty {
 	display: none;
+}
+#reader-session-controls .paused-controls {
+	display: grid;
+	grid-template-columns: 1fr;
+	justify-items: start;
+	gap: 10px;
+	padding: 0;
+}
+#reader-session-controls button {
+	font-size: 14px;
+}
+#reader-session-controls .seek-label {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	width: 100%;
+	gap: 4px;
+	font-size: 14px;
+}
+#reader-session-controls #seek {
+	width: 100%;
+	flex: none;
 }
 @media (min-width: 700px) {
 	.reader-chrome {
@@ -249,43 +271,25 @@
 	.reader-topbar {
 		grid-column: 1 / -1;
 		grid-row: 1;
-		padding: 0 4px;
-		gap: 5px;
+		padding: 6px 4px;
+		gap: 4px;
+		flex-wrap: wrap;
 	}
 	.reader-topbar button {
-		padding: 7px 8px;
-		font-size: 12px;
+		padding: 7px 6px;
+		font-size: 14px;
 	}
 	.reader-metrics {
 		flex: 1;
 		flex-direction: column;
 		justify-content: center;
 		gap: 0;
-		font-size: 11px;
+		font-size: 12px;
 	}
 	.progress-track {
 		grid-column: 1 / -1;
 		grid-row: 2;
 		position: static;
-	}
-	.paused-controls {
-		grid-column: 1 / -1;
-		grid-row: 3;
-		flex-wrap: nowrap;
-		padding: 0 4px;
-		gap: 4px;
-	}
-	.paused-controls button {
-		padding: 7px 10px;
-		font-size: 12px;
-	}
-	.seek-label,
-	#reader[data-phase="paused"] .paused-controls .seek-label,
-	#reader[data-phase="finished"] .paused-controls .seek-label {
-		display: flex;
-		flex-basis: auto;
-		font-size: 0;
-		gap: 0;
 	}
 	.reader-status {
 		display: contents;
@@ -307,22 +311,25 @@
 	}
 	#over-target {
 		grid-column: 1;
-		grid-row: 4;
+		grid-row: 3;
 		padding: 0 4px;
-		font-size: 10px;
-		line-height: 13px;
+		font-size: 12px;
+		line-height: 18px;
 	}
 	.reader-notice {
 		grid-column: 2;
-		grid-row: 4;
+		grid-row: 3;
 		min-width: 0;
 		padding: 0 4px;
-		font-size: 10px;
-		line-height: 13px;
+		font-size: 12px;
+		line-height: 18px;
 	}
 	#script-content {
 		padding-left: 14px;
 		padding-right: 14px;
+	}
+	#reader-session-controls .paused-controls {
+		padding-right: 44px;
 	}
 }
 

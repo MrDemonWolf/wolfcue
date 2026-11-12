@@ -73,6 +73,14 @@ a:hover {
 	outline: 3px solid var(--focus);
 	outline-offset: 3px;
 }
+dialog button:focus-visible,
+dialog select:focus-visible,
+dialog textarea:focus-visible,
+dialog input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+#reader button:focus-visible {
+	outline-color: currentColor;
+	outline-offset: -5px;
+}
 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 select,
 textarea {

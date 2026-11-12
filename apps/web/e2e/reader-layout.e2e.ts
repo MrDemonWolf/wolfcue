@@ -1,5 +1,11 @@
 import { expect, type Page, test } from "@playwright/test";
-import { hidePage, openApp, start } from "./helpers";
+import {
+	closeReaderControls,
+	hidePage,
+	openApp,
+	openReaderControls,
+	start,
+} from "./helpers";
 
 async function expectReadableLine(page: Page, index: number) {
 	const readGeometry = () =>
@@ -65,8 +71,10 @@ for (const lineHeight of [1.5, 2]) {
 		await start(page);
 		await expect(page.locator("#reader-notice")).toHaveText("Screen may lock.");
 		await page.locator("#toggle-play").click();
+		await openReaderControls(page);
 		await page.locator("#seek").fill("200");
 		await page.locator("#seek").dispatchEvent("input");
+		await closeReaderControls(page);
 		for (const theme of ["light", "dark"] as const) {
 			await page.emulateMedia({ colorScheme: theme });
 			for (const size of [
@@ -79,6 +87,13 @@ for (const lineHeight of [1.5, 2]) {
 				await page.setViewportSize(size);
 				await page.clock.runFor(32);
 				await expectReadableLine(page, 20);
+				if (size.width <= 250 && size.height <= 250) {
+					expect(
+						await page
+							.locator("#stage")
+							.evaluate((stage) => stage.clientHeight),
+					).toBeGreaterThanOrEqual(100);
+				}
 				await expect(page.locator("#over-target")).toBeVisible();
 				await expect(page.locator("#reader-notice")).toBeVisible();
 				await expect(page.locator("#reader")).toHaveAttribute(
@@ -122,3 +137,79 @@ for (const lineHeight of [1.5, 2]) {
 		await expectReadableLine(page, 20);
 	});
 }
+
+test("compact Settings owns session controls without losing focus on resize", async ({
+	page,
+}) => {
+	await openApp(page, { keepAwake: false });
+	await page.setViewportSize({ width: 200, height: 180 });
+	await start(page);
+	await page.locator("#reader-settings").click();
+	await expect(page.locator("#reader-session-controls #restart")).toBeVisible();
+	await page.locator("#seek").fill("500");
+	await page.locator("#seek").dispatchEvent("input");
+	await expect(page.locator("#seek")).toHaveAttribute(
+		"aria-valuetext",
+		"50% through script",
+	);
+	await page.locator("#seek").focus();
+	await page.setViewportSize({ width: 844, height: 390 });
+	await expect(page.locator("#reader-session-controls #seek")).toBeFocused();
+	await page.locator('[data-close="settings-dialog"]').click();
+	await expect(page.locator("#reader-chrome #seek")).toBeAttached();
+	await expect(page.locator("#toggle-play")).toHaveText("Resume");
+	await page.setViewportSize({ width: 200, height: 180 });
+	await openReaderControls(page);
+	await page.locator("#restart").click();
+	await expect(page.locator("#settings-dialog")).toBeHidden();
+	await expect(page.locator("#elapsed")).toHaveText("0:00");
+	await expect(page.locator("#toggle-play")).toHaveText("Pause");
+	await openReaderControls(page);
+	await page.locator("#exit-reader").click();
+	await expect(page.locator("#settings-dialog")).toBeHidden();
+	await expect(page.locator("#start-reading")).toBeFocused();
+	await expect(page.locator("#reader-session-controls")).toBeHidden();
+});
+
+test("reader honors user typography overrides and permits pinch zoom", async ({
+	page,
+}) => {
+	await page.clock.install();
+	await openApp(page, { keepAwake: false });
+	await page.locator("#script").fill(Array(100).fill("Read").join("\n"));
+	await page.setViewportSize({ width: 200, height: 180 });
+	await page.clock.pauseAt(
+		new Date(await page.evaluate(() => Date.now() + 1000)),
+	);
+	await start(page);
+	await page.locator("#toggle-play").click();
+	await openReaderControls(page);
+	await page.locator("#seek").fill("200");
+	await page.locator("#seek").dispatchEvent("input");
+	await closeReaderControls(page);
+	await page.route("**/reader-spacing.css", (route) =>
+		route.fulfill({
+			contentType: "text/css",
+			body: "#script-content, #script-content * { font-size:40px!important; line-height:2!important; letter-spacing:.12em!important; word-spacing:.16em!important; }",
+		}),
+	);
+	await page.evaluate(() => {
+		const css = document.createElement("link");
+		css.rel = "stylesheet";
+		css.href = new URL("reader-spacing.css", location.href).href;
+		document.head.append(css);
+	});
+	await expect
+		.poll(() =>
+			page
+				.locator("#script-content")
+				.evaluate((el) => getComputedStyle(el).lineHeight),
+		)
+		.toBe("80px");
+	await expectReadableLine(page, 20);
+	expect(
+		await page
+			.locator("#stage")
+			.evaluate((el) => getComputedStyle(el).touchAction),
+	).toBe("pinch-zoom");
+});

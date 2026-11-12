@@ -38,3 +38,18 @@ export async function position(page: Page) {
 			(el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42,
 		);
 }
+
+export async function openReaderControls(page: Page) {
+	if (
+		(await page.evaluate(
+			() => matchMedia("(max-width:300px), (max-height:300px)").matches,
+		)) &&
+		!(await page.locator("#settings-dialog").isVisible())
+	)
+		await page.locator("#reader-settings").click();
+	await expect(page.locator("#seek")).toBeVisible();
+}
+export async function closeReaderControls(page: Page) {
+	if (await page.locator("#settings-dialog").isVisible())
+		await page.locator('[data-close="settings-dialog"]').click();
+}

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openApp, start } from "./helpers";
+import { openApp, openReaderControls, start } from "./helpers";
 
 test("essential controls have names, visible focus, and hidden views are inert", async ({
 	page,
@@ -19,6 +19,7 @@ test("essential controls have names, visible focus, and hidden views are inert",
 	await start(page);
 	await expect(page.locator("#editor")).toHaveAttribute("inert", "");
 	await page.locator("#toggle-play").click();
+	await openReaderControls(page);
 	await page.locator("#exit-reader").click();
 	await expect(page.locator("#reader")).toHaveAttribute("inert", "");
 });

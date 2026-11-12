@@ -6,11 +6,11 @@
 	--text-muted: #525252;
 	--line: #d4d4d4;
 	--line-strong: #808080;
-	--brand: #0077a8;
+	--brand: #005c82;
 	--brand-ink: #ffffff;
-	--brand-text: #00688f;
+	--brand-text: #005570;
 	--focus: #0077a8;
-	--danger: #b42318;
+	--danger: #9f1e14;
 }
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme="light"]) {

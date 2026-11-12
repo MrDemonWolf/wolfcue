@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { openApp, position, start } from "./helpers";
+import {
+	closeReaderControls,
+	openApp,
+	openReaderControls,
+	position,
+	start,
+} from "./helpers";
 
 test("configure, countdown, play, pause, seek, resume, restart and exit", async ({
 	page,
@@ -31,8 +37,10 @@ test("configure, countdown, play, pause, seek, resume, restart and exit", async 
 	expect(
 		Number(await page.locator("#reader").getAttribute("data-position")),
 	).toBeCloseTo(paused, 8);
+	await openReaderControls(page);
 	await page.locator("#seek").fill("500");
 	await page.locator("#seek").dispatchEvent("input");
+	await closeReaderControls(page);
 	expect(
 		Number(await page.locator("#reader").getAttribute("data-position")),
 	).toBeGreaterThan(paused);
@@ -40,9 +48,11 @@ test("configure, countdown, play, pause, seek, resume, restart and exit", async 
 	await expect(page.locator("#toggle-play")).toHaveText("Pause");
 	await page.clock.runFor(1024);
 	await page.locator("#toggle-play").click();
+	await openReaderControls(page);
 	await page.locator("#restart").click();
 	await expect(page.locator("#countdown")).toHaveText("3");
 	await page.locator("#toggle-play").click();
+	await openReaderControls(page);
 	await page.locator("#exit-reader").click();
 	await expect(page.locator("#editor")).toBeVisible();
 });
@@ -97,8 +107,10 @@ test("elapsed timing, stalled frames and block anchors survive layout changes", 
 	);
 	expect(after.elapsed - before.elapsed).toBeLessThanOrEqual(250);
 	await page.locator("#toggle-play").click();
+	await openReaderControls(page);
 	await page.locator("#seek").fill("500");
 	await page.locator("#seek").dispatchEvent("input");
+	await closeReaderControls(page);
 	const anchor = () =>
 		page.locator("#script-content").evaluate((content) => {
 			const pos = Number(

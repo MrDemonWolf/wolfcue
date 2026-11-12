@@ -59,9 +59,14 @@ test("settings disclose reader controls in context and Done stays visible while 
 	await expect(page.locator("#line-spacing")).toBeVisible();
 	for (const width of [250, 200]) {
 		await page.setViewportSize({ width, height: width === 200 ? 180 : 250 });
-		await page.locator("#settings-dialog").evaluate((el) => {
+		await page.locator("#settings-dialog .dialog-body").evaluate((el) => {
 			el.scrollTop = el.scrollHeight;
 		});
+		expect(
+			await page
+				.locator("#settings-dialog .dialog-body")
+				.evaluate((el) => el.scrollTop),
+		).toBeGreaterThan(0);
 		const dialog = await page.locator("#settings-dialog").boundingBox();
 		const done = await page
 			.getByRole("button", { name: "Done", exact: true })

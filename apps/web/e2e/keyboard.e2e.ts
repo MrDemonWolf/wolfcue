@@ -28,3 +28,19 @@ test("keyboard respects editor and focused controls, IME, and reader shortcuts",
 	await page.keyboard.press("Escape");
 	await expect(page.locator("#editor")).toBeVisible();
 });
+
+test("character shortcuts are inactive when focus is outside the reader", async ({
+	page,
+}) => {
+	await openApp(page);
+	await start(page);
+	await page.evaluate(() => {
+		document.body.tabIndex = -1;
+		document.body.focus();
+	});
+	await page.keyboard.press("k");
+	await expect(page.locator("#toggle-play")).toHaveText("Pause");
+	await page.locator("#reader").focus();
+	await page.keyboard.press("k");
+	await expect(page.locator("#toggle-play")).toHaveText("Resume");
+});

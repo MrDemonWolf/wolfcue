@@ -1,5 +1,11 @@
 import { expect, type Page, test } from "@playwright/test";
-import { openApp, SCRIPT, start } from "./helpers";
+import {
+	closeReaderControls,
+	openApp,
+	openReaderControls,
+	SCRIPT,
+	start,
+} from "./helpers";
 
 async function freeze(page: Page, prefs: Record<string, unknown> = {}) {
 	await page.clock.install();
@@ -47,6 +53,19 @@ test("paused touch drag and wheel seek; a tap toggles playback", async ({
 	// Mobile WebKit has no native mouse wheel dispatch; exercise the wheel adapter.
 	await stage.dispatchEvent("wheel", { deltaY: 80, cancelable: true });
 	await expect.poll(() => readingPosition(page)).toBeGreaterThan(before + 40);
+	const beforeZoom = await readingPosition(page);
+	const zoomPrevented = await stage.evaluate((element) => {
+		const event = new WheelEvent("wheel", {
+			deltaY: 80,
+			ctrlKey: true,
+			cancelable: true,
+			bubbles: true,
+		});
+		element.dispatchEvent(event);
+		return event.defaultPrevented;
+	});
+	expect(zoomPrevented).toBe(false);
+	expect(await readingPosition(page)).toBe(beforeZoom);
 	await stage.tap();
 	await expect(page.locator("#reader")).toHaveAttribute(
 		"data-phase",
@@ -82,8 +101,10 @@ test("seeking to the end stays paused; playback finishes and restart resets", as
 }) => {
 	await freeze(page);
 	await page.locator("#toggle-play").click();
+	await openReaderControls(page);
 	await page.locator("#seek").fill("1000");
 	await page.locator("#seek").dispatchEvent("input");
+	await closeReaderControls(page);
 	await expect(page.locator("#reader")).toHaveAttribute("data-phase", "paused");
 	await page.locator("#toggle-play").click();
 	await page.clock.runFor(16);
@@ -94,6 +115,7 @@ test("seeking to the end stays paused; playback finishes and restart resets", as
 		end: reader.dataset.end,
 	}));
 	expect(endpoints.position).toBe(endpoints.end);
+	await openReaderControls(page);
 	await page.locator("#restart").click();
 	await expect(page.locator("#reader")).toHaveAttribute(
 		"data-phase",

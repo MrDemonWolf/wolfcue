@@ -5,10 +5,14 @@ dialog {
 	border-radius: 14px;
 	padding: 0;
 	width: min(520px, calc(100% - 24px));
+	max-width: calc(100% - 24px);
 	max-height: calc(100vh - 24px);
-	overflow: auto;
+	overflow: hidden;
 	overscroll-behavior: contain;
-	scroll-padding-top: 84px;
+}
+dialog[open] {
+	display: flex;
+	flex-direction: column;
 }
 dialog::backdrop {
 	background: #000000;
@@ -18,13 +22,13 @@ body:has(dialog[open]) {
 	overflow: hidden;
 }
 .dialog-heading {
-	position: sticky;
-	top: 0;
+	flex: 0 0 auto;
 	z-index: 3;
 	background: var(--surface);
 	border-bottom: 1px solid var(--line);
 	padding: 16px 20px;
 	display: flex;
+	flex-wrap: wrap;
 	justify-content: space-between;
 	align-items: center;
 	gap: 12px;
@@ -35,6 +39,10 @@ body:has(dialog[open]) {
 }
 .dialog-body {
 	min-width: 0;
+	min-height: 0;
+	overflow: auto;
+	overscroll-behavior: contain;
+	scroll-padding-block: 8px;
 	padding: 20px;
 }
 #settings-dialog[data-context="editor"] [data-reader-only] {
@@ -107,6 +115,12 @@ summary {
 	margin: 20px 0 14px;
 	font-size: 13px;
 }
+.settings-links a {
+	display: inline-flex;
+	align-items: center;
+	min-width: 44px;
+	min-height: 44px;
+}
 .dialog-actions {
 	display: flex;
 	flex-wrap: wrap;
@@ -139,11 +153,16 @@ summary {
 @media (max-width: 300px), (max-height: 300px) {
 	dialog {
 		border-radius: 10px;
-		scroll-padding-top: 72px;
 	}
 	.dialog-heading,
 	.dialog-body {
 		padding: 12px;
+	}
+	.dialog-heading {
+		gap: 8px;
+	}
+	.dialog-heading button {
+		padding-inline: 10px;
 	}
 	.export-options {
 		grid-template-columns: 1fr;
@@ -153,11 +172,11 @@ summary {
 	}
 	.setting-row {
 		gap: 8px;
-		font-size: 12px;
+		font-size: 14px;
 	}
 	.setting-row > select {
 		max-width: 55%;
-		font-size: 12px;
+		font-size: 14px;
 		padding: 6px;
 	}
 	.settings-links {
