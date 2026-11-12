@@ -1,6 +1,90 @@
 import { expect, test } from "@playwright/test";
 import { openApp, start } from "./helpers";
 
+test("compact editor keeps its header on one row and steppers have visible keyboard focus", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 250, height: 250 });
+	await openApp(page);
+	const logo = await page.locator(".wordmark").boundingBox();
+	const settings = await page.locator("#editor-settings").boundingBox();
+	if (!logo || !settings) throw new Error("Editor header missing");
+	expect(
+		Math.abs(logo.y + logo.height / 2 - settings.y - settings.height / 2),
+	).toBeLessThan(1);
+	await page.keyboard.press("Tab");
+	for (const selector of [
+		'[data-adjust="wpm"][data-delta="-5"]',
+		"#wpm",
+		'[data-adjust="wpm"][data-delta="5"]',
+	]) {
+		const control = page.locator(selector);
+		await control.focus();
+		const css = await control.evaluate((element) => {
+			const style = getComputedStyle(element);
+			return {
+				width: style.outlineWidth,
+				offset: style.outlineOffset,
+				style: style.outlineStyle,
+			};
+		});
+		expect(css).toEqual({ width: "3px", offset: "-4px", style: "solid" });
+	}
+	await page.locator('[data-adjust="wpm"][data-delta="5"]').click();
+	await expect(page.locator("#wpm")).toHaveValue("155");
+});
+
+test("enlarged target time stays readable and its controls fit compact widths", async ({
+	page,
+}, info) => {
+	test.skip(
+		info.project.name !== "iphone-portrait",
+		"Explicit viewport matrix",
+	);
+	await openApp(page, { paceMode: "target", targetSec: 3600 });
+	await page.evaluate(() => {
+		const panel = document.querySelector<HTMLElement>(".setup-panel");
+		const label = document.querySelector<HTMLElement>(
+			'[data-pace="target"] label',
+		);
+		const input = document.querySelector<HTMLInputElement>("#target-seconds");
+		if (!panel || !label || !input) throw new Error("Target controls missing");
+		panel.style.fontSize = "32px";
+		label.style.fontSize = "26px";
+		input.style.fontSize = "40px";
+		input.style.letterSpacing = "0.12em";
+	});
+	for (const width of [200, 250, 320, 390]) {
+		await page.setViewportSize({ width, height: 844 });
+		const input = page.locator("#target-seconds");
+		await expect(input).toHaveValue("3600");
+		const geometry = await input.evaluate((element) => ({
+			width: element.clientWidth,
+			scroll: element.scrollWidth,
+			box: element.getBoundingClientRect().toJSON(),
+			parent: element.closest(".stepper")?.getBoundingClientRect().toJSON(),
+		}));
+		expect(geometry.scroll, `${width}px value`).toBeLessThanOrEqual(
+			geometry.width,
+		);
+		expect(geometry.box.left).toBeGreaterThanOrEqual(
+			geometry.parent?.left ?? 0,
+		);
+		expect(geometry.box.right).toBeLessThanOrEqual(
+			geometry.parent?.right ?? width,
+		);
+		for (const button of await page
+			.locator('[data-pace="target"] button')
+			.all()) {
+			const box = await button.boundingBox();
+			if (!box) throw new Error("Target stepper button missing");
+			expect(box.width).toBeGreaterThanOrEqual(44);
+			expect(box.height).toBeGreaterThanOrEqual(44);
+			expect(box.x + box.width).toBeLessThanOrEqual(width);
+		}
+	}
+});
+
 test("editor stays on one desktop screen and keeps the phone primary action in view", async ({
 	page,
 }, info) => {

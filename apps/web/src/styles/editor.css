@@ -58,7 +58,7 @@
 }
 #save-status {
 	color: var(--text-muted);
-	font-size: 11px;
+	font-size: 12px;
 }
 #script {
 	width: 100%;
@@ -87,7 +87,7 @@
 	gap: 8px;
 	flex-wrap: wrap;
 	color: var(--text-muted);
-	font-size: 11px;
+	font-size: 12px;
 }
 .script-bottom p {
 	margin: 0;
@@ -105,6 +105,12 @@
 .setup-panel {
 	border-left: 1px solid var(--line);
 	padding-left: 24px;
+	container-type: inline-size;
+}
+.setup-panel h2 {
+	font-size: 16px;
+	letter-spacing: -0.02em;
+	margin: 0 0 12px;
 }
 .setup-panel > label,
 .setup-panel > .control-label {
@@ -134,6 +140,16 @@
 	font-weight: 400;
 	flex: 0 0 auto;
 }
+.stepper > button:first-child {
+	border-right: 1px solid var(--line-strong);
+}
+.stepper > button:last-child {
+	border-left: 1px solid var(--line-strong);
+}
+.stepper :is(button, input):focus-visible {
+	outline: 3px solid var(--focus);
+	outline-offset: -4px;
+}
 .stepper > label {
 	display: flex;
 	align-items: center;
@@ -143,10 +159,13 @@
 	font-size: 13px;
 	color: var(--text-muted);
 }
-.stepper input[type="number"] {
-	width: 64px;
+#editor .stepper input[type="number"] {
+	width: calc(5ch + 1rem);
+	max-width: 100%;
 	padding: 5px 0;
 	border: 0;
+	border-radius: 0;
+	background: transparent;
 	text-align: center;
 	font-size: 20px;
 	font-weight: 600;
@@ -294,7 +313,19 @@
 		padding: 10px;
 	}
 	.wordmark {
-		font-size: 20px;
+		font-size: 18px;
+		gap: 5px;
+	}
+	.brand-logo {
+		width: 28px;
+		height: 28px;
+	}
+	.masthead {
+		gap: 6px;
+	}
+	.masthead button {
+		padding-inline: 8px;
+		font-size: 13px;
 	}
 	.intro {
 		padding: 12px 0;
@@ -381,7 +412,26 @@
 	flex: 1;
 	min-width: 0;
 	padding: 7px 8px;
-	font-size: 12px;
+	font-size: 13px;
+}
+@container (max-width: 8em) {
+	.stepper {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+	}
+	.stepper > label {
+		grid-column: 1 / -1;
+		grid-row: 1;
+		min-height: 44px;
+	}
+	.stepper > button {
+		width: 100%;
+		grid-row: 2;
+		border-top: 1px solid var(--line-strong);
+	}
+	.stepper > button:last-child {
+		border-left: 0;
+	}
 }
 @media (max-width: 300px) {
 	.pace-options {

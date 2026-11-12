@@ -45,6 +45,7 @@
 <p id="file-status" class="notice" role="status"></p>
 </section>
 <section class="setup-panel" aria-label="Reading setup">
+<h2>Reading setup</h2>
 <span id="pace-label" class="control-label">Pace</span><div id="pace-mode" class="radio-group pace-options" role="radiogroup" aria-labelledby="pace-label"><label><input type="radio" name="editor-pace" data-setting="paceMode" value="wpm" />Words per minute</label><label><input type="radio" name="editor-pace" data-setting="paceMode" value="target" />Target time</label></div>
 <div class="stepper" data-pace="wpm"><button type="button" data-adjust="wpm" data-delta="-5" aria-label="Decrease words per minute">−</button><label><input id="wpm" data-setting="wpm" type="number" min="60" max="300" step="5" aria-label="Words per minute" /><span>wpm</span></label><button type="button" data-adjust="wpm" data-delta="5" aria-label="Increase words per minute">+</button></div>
 <div class="stepper" data-pace="target" hidden><button type="button" data-adjust="targetSec" data-delta="-5" aria-label="Decrease target time">−</button><label><input id="target-seconds" data-setting="targetSec" type="number" min="10" max="3600" step="5" aria-label="Target time in seconds" /><span>sec</span></label><button type="button" data-adjust="targetSec" data-delta="5" aria-label="Increase target time">+</button></div>
