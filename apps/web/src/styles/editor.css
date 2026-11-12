@@ -264,7 +264,7 @@
 	}
 	.intro {
 		display: block;
-		padding: 16px 0;
+		padding: 12px 0;
 	}
 	.intro h1 {
 		font-size: 25px;
@@ -274,7 +274,7 @@
 		display: block;
 	}
 	#script {
-		height: 200px;
+		height: 184px;
 	}
 	.setup-panel {
 		margin-top: 18px;
