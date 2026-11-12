@@ -9,6 +9,7 @@ import { MAX_TEXT_BYTES, validateImport } from "./core/import-validate";
 import { buildScriptLink, readScriptLink } from "./core/script-link";
 import { type Settings, sanitizeSettings } from "./core/settings";
 import { createStore, getStorage } from "./core/storage";
+import { resolveTheme } from "./core/theme";
 import { countWords } from "./core/words";
 import { byId, writeText } from "./ui/dom";
 import { createReader } from "./ui/reader";
@@ -25,6 +26,7 @@ let importGeneration = 0;
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
 let filename = "wolfcue-script.txt";
 const reader = createReader(() => settings, updateSettings, openSettings);
+const systemTheme = matchMedia("(prefers-color-scheme: dark)");
 
 function updateSaveStatus() {
 	writeText(
@@ -45,6 +47,13 @@ function applyTheme() {
 	if (settings.theme === "system")
 		delete document.documentElement.dataset.theme;
 	else document.documentElement.dataset.theme = settings.theme;
+	const dark = resolveTheme(settings.theme, systemTheme.matches) === "dark";
+	const label = `Switch to ${dark ? "light" : "dark"} theme`;
+	const button = byId("theme-toggle");
+	button.setAttribute("aria-label", label);
+	button.title = label;
+	document.getElementById("theme-sun")?.toggleAttribute("hidden", !dark);
+	document.getElementById("theme-moon")?.toggleAttribute("hidden", dark);
 }
 function updateControls() {
 	for (const field of document.querySelectorAll<
@@ -161,6 +170,11 @@ for (const dialog of document.querySelectorAll<HTMLDialogElement>("dialog")) {
 	});
 }
 byId("editor-settings").addEventListener("click", openSettings);
+byId("theme-toggle").addEventListener("click", () => {
+	const current = resolveTheme(settings.theme, systemTheme.matches);
+	updateSettings({ theme: current === "dark" ? "light" : "dark" });
+});
+systemTheme.addEventListener("change", applyTheme);
 for (const field of document.querySelectorAll<
 	HTMLInputElement | HTMLSelectElement
 >("[data-setting]")) {

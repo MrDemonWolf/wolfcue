@@ -12,6 +12,10 @@
 	padding-bottom: 16px;
 	border-bottom: 1px solid var(--line);
 }
+.masthead-actions {
+	display: flex;
+	gap: 6px;
+}
 .masthead button {
 	background: transparent;
 }
@@ -312,16 +316,17 @@
 	#editor {
 		padding: 10px;
 	}
-	.wordmark {
-		font-size: 18px;
-		gap: 5px;
+	#editor .wordmark {
+		font-size: 16px;
+		gap: 4px;
 	}
-	.brand-logo {
-		width: 28px;
-		height: 28px;
+	#editor .brand-logo {
+		width: 24px;
+		height: 24px;
 	}
 	.masthead {
 		gap: 6px;
+		flex-wrap: wrap;
 	}
 	.masthead button {
 		padding-inline: 8px;
