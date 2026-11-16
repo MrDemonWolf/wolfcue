@@ -7,7 +7,12 @@ import { formatClock } from "./core/clock-format";
 import { textFileName } from "./core/export-name";
 import { MAX_TEXT_BYTES, validateImport } from "./core/import-validate";
 import { buildScriptLink, readScriptLink } from "./core/script-link";
-import { type Settings, sanitizeSettings } from "./core/settings";
+import {
+	type NumericSetting,
+	nudgeSetting,
+	type Settings,
+	sanitizeSettings,
+} from "./core/settings";
 import { createStore, getStorage } from "./core/storage";
 import { resolveTheme } from "./core/theme";
 import { countWords } from "./core/words";
@@ -198,8 +203,10 @@ for (const button of document.querySelectorAll<HTMLButtonElement>(
 	"[data-adjust]",
 )) {
 	button.addEventListener("click", () => {
-		const key = button.dataset.adjust as "wpm" | "targetSec" | "fontSizePx";
-		updateSettings({ [key]: settings[key] + Number(button.dataset.delta) });
+		const key = button.dataset.adjust as NumericSetting;
+		updateSettings({
+			[key]: nudgeSetting(key, settings[key], Number(button.dataset.direction)),
+		});
 	});
 }
 script.addEventListener("input", () => {

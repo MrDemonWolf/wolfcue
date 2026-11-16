@@ -1,4 +1,10 @@
-import { DEFAULT_SETTINGS, type Settings, sanitizeSettings } from "./settings";
+import {
+	DEFAULT_SETTINGS,
+	fromStoredPrefs,
+	type Settings,
+	sanitizeSettings,
+	toStoredPrefs,
+} from "./settings";
 export interface StorageLike {
 	getItem(key: string): string | null;
 	setItem(key: string, value: string): void;
@@ -33,7 +39,7 @@ export function createStore(storage: StorageLike | null) {
 		const json = storage?.getItem(STORAGE_KEYS.prefs);
 		if (json) {
 			try {
-				prefs = sanitizeSettings(JSON.parse(json));
+				prefs = fromStoredPrefs(JSON.parse(json));
 			} catch {
 				prefs = { ...DEFAULT_SETTINGS };
 			}
@@ -72,7 +78,10 @@ export function createStore(storage: StorageLike | null) {
 			prefsSaved = false;
 			try {
 				if (!storage) return;
-				storage.setItem(STORAGE_KEYS.prefs, JSON.stringify(prefs));
+				storage.setItem(
+					STORAGE_KEYS.prefs,
+					JSON.stringify(toStoredPrefs(prefs)),
+				);
 				if (prefs.theme === "system") storage.removeItem(STORAGE_KEYS.theme);
 				else storage.setItem(STORAGE_KEYS.theme, prefs.theme);
 				prefsSaved = true;

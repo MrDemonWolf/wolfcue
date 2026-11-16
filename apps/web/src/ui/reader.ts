@@ -20,7 +20,7 @@ import {
 } from "../core/engine";
 import { remainingSec } from "../core/pace";
 import { toBlocks } from "../core/render-plan";
-import type { Settings } from "../core/settings";
+import { nudgeSetting, type Settings } from "../core/settings";
 import { mapKey, type Shortcut } from "../core/shortcuts";
 import { countWords } from "../core/words";
 import { byId, showView, writeText } from "./dom";
@@ -401,10 +401,17 @@ export function createReader(
 	}
 	function changePace(direction: number) {
 		const settings = getSettings();
+		// Faster means a higher wpm or a shorter target time.
 		updateSettings(
 			settings.paceMode === "wpm"
-				? { wpm: settings.wpm + direction * 5 }
-				: { targetSec: settings.targetSec - direction * 5 },
+				? { wpm: nudgeSetting("wpm", settings.wpm, direction) }
+				: {
+						targetSec: nudgeSetting(
+							"targetSec",
+							settings.targetSec,
+							-direction,
+						),
+					},
 		);
 	}
 	function shortcut(action: Shortcut) {
@@ -452,10 +459,14 @@ export function createReader(
 				updateSettings({ guide: !settings.guide });
 				break;
 			case "smaller":
-				updateSettings({ fontSizePx: settings.fontSizePx - 2 });
+				updateSettings({
+					fontSizePx: nudgeSetting("fontSizePx", settings.fontSizePx, -1),
+				});
 				break;
 			case "larger":
-				updateSettings({ fontSizePx: settings.fontSizePx + 2 });
+				updateSettings({
+					fontSizePx: nudgeSetting("fontSizePx", settings.fontSizePx, 1),
+				});
 				break;
 			case "fullscreen":
 				void toggleFullscreen();

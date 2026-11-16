@@ -8,7 +8,7 @@ export async function openApp(page: Page, prefs: Record<string, unknown> = {}) {
 	await page.addInitScript((settings) => {
 		localStorage.setItem(
 			"wolfcue:v1:prefs",
-			JSON.stringify({ countdown: false, ...settings }),
+			JSON.stringify({ rev: 2, countdown: false, ...settings }),
 		);
 	}, prefs);
 	await page.goto("./");

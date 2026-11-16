@@ -1,4 +1,4 @@
-import { bounded } from "./settings";
+import { bounded, clampSetting, SETTING_LIMITS } from "./settings";
 export type Pace =
 	| { mode: "wpm"; wpm: number }
 	| { mode: "target"; targetSec: number };
@@ -6,10 +6,12 @@ export interface Layout {
 	endPx: number;
 	words: number;
 }
+/** Fastest scroll speed, also the cap applied in Target time mode. */
+export const MAX_WPM = SETTING_LIMITS.wpm.max;
 export function sanitizePace(pace: Pace): Pace {
 	return pace.mode === "target"
-		? { mode: "target", targetSec: bounded(pace.targetSec, 60, 10, 3600) }
-		: { mode: "wpm", wpm: bounded(pace.wpm, 150, 60, 300) };
+		? { mode: "target", targetSec: clampSetting("targetSec", pace.targetSec) }
+		: { mode: "wpm", wpm: clampSetting("wpm", pace.wpm) };
 }
 export function sanitizeLayout(layout: Layout): Layout {
 	return {
@@ -35,7 +37,7 @@ export function calculatePace(
 	const requested =
 		Math.max(0, l.endPx - positionPx) /
 		Math.max(1, p.targetSec - elapsedMs / 1000);
-	const cap = (300 / 60) * perWord;
+	const cap = (MAX_WPM / 60) * perWord;
 	return { pxPerSec: Math.min(requested, cap), overTarget: requested > cap };
 }
 /**
@@ -49,17 +51,26 @@ export function remainingSec(
 ): number {
 	return pxPerSec > 0 ? Math.max(0, endPx - positionPx) / pxPerSec : 0;
 }
-/**
- * Adapted from Pocket Teleprompter, Copyright (c) 2026 ttomohisa, MIT License.
- * https://github.com/ttomohisa/htmlapps-pocket-teleprompter/blob/ad05bf6202bdb9a20e168e1f67521f0a73de90a5/src/index.template.html#L372
- */
-export function nudgeWpm(wpm: number, direction: number): number {
-	return bounded(wpm + direction * 5, 150, 60, 300);
+/** Shortest possible reading time, at the capped maximum pace. */
+export function minTargetSec(words: number): number {
+	return (Math.max(0, words) / MAX_WPM) * 60;
 }
-/**
- * Adapted from Pocket Teleprompter, Copyright (c) 2026 ttomohisa, MIT License.
- * https://github.com/ttomohisa/htmlapps-pocket-teleprompter/blob/ad05bf6202bdb9a20e168e1f67521f0a73de90a5/src/index.template.html#L372
- */
-export function nudgeTarget(targetSec: number, direction: number): number {
-	return bounded(targetSec + direction * 5, 60, 10, 3600);
+/** Honest whole-script estimate: Target time cannot beat the 300 wpm cap. */
+export function estimateSec(
+	pace: Pace,
+	words: number,
+): { sec: number; capped: boolean } {
+	const p = sanitizePace(pace);
+	if (p.mode === "wpm")
+		return { sec: (Math.max(0, words) / p.wpm) * 60, capped: false };
+	const floor = minTargetSec(words);
+	return floor > p.targetSec
+		? { sec: floor, capped: true }
+		: { sec: p.targetSec, capped: false };
+}
+/** A target that keeps the current words-per-minute pace, in whole steps. */
+export function suggestTargetSec(words: number, wpm: number): number {
+	const { step } = SETTING_LIMITS.targetSec;
+	const sec = (Math.max(0, words) / clampSetting("wpm", wpm)) * 60;
+	return clampSetting("targetSec", Math.ceil(sec / step) * step);
 }

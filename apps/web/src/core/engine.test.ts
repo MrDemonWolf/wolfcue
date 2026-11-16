@@ -6,7 +6,6 @@ import {
 	play,
 	relayout,
 	restart,
-	seekBy,
 	seekTo,
 	setPace,
 	step,
@@ -59,7 +58,7 @@ test("seek only works paused or finished and preserves elapsed", () => {
 	expect(s.elapsedMs).toBe(100);
 	expect(s.phase).toBe("paused");
 	expect(seekTo(s, Number.POSITIVE_INFINITY)).toBe(s);
-	expect(seekBy(s, -10000).positionPx).toBe(0);
+	expect(seekTo(s, s.positionPx - 10000).positionPx).toBe(0);
 	expect(seekTo(s, 10000).positionPx).toBe(1800);
 	expect(seekTo(s, 1800).phase).toBe("paused");
 	expect(seekTo(s, 1799.9).phase).toBe("paused");
@@ -128,7 +127,6 @@ test("invalid seeks and countdown seeks preserve the exact state", () => {
 		Number.NEGATIVE_INFINITY,
 	]) {
 		expect(seekTo(s, value)).toBe(s);
-		expect(seekBy(s, value)).toBe(s);
 	}
 	const countdown = beginCountdown(s, 0);
 	expect(seekTo(countdown, 900)).toBe(countdown);

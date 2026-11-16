@@ -1,4 +1,5 @@
-export type Theme = "system" | "light" | "dark";
+import type { Settings } from "./settings";
+export type Theme = Settings["theme"];
 export function resolveTheme(
 	theme: Theme,
 	systemDark: boolean,

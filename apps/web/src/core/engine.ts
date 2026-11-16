@@ -5,6 +5,7 @@ import {
 	sanitizeLayout,
 	sanitizePace,
 } from "./pace";
+import { DEFAULT_SETTINGS } from "./settings";
 
 export type { Layout, Pace } from "./pace";
 export type Phase = "countdown" | "playing" | "paused" | "finished";
@@ -27,7 +28,7 @@ function recalculate(s: EngineState): EngineState {
 	};
 }
 export function createEngine(
-	pace: Pace = { mode: "wpm", wpm: 150 },
+	pace: Pace = { mode: "wpm", wpm: DEFAULT_SETTINGS.wpm },
 	layout: Layout = { endPx: 0, words: 0 },
 ): EngineState {
 	return recalculate({
@@ -121,9 +122,6 @@ export function seekTo(s: EngineState, positionPx: number): EngineState {
 		positionPx: Math.min(s.layout.endPx, Math.max(0, positionPx)),
 		lastFrameMs: null,
 	});
-}
-export function seekBy(s: EngineState, deltaPx: number): EngineState {
-	return seekTo(s, s.positionPx + deltaPx);
 }
 /**
  * Adapted from Pocket Teleprompter, Copyright (c) 2026 ttomohisa, MIT License.

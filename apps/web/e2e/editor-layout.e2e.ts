@@ -14,9 +14,9 @@ test("compact editor keeps its header on one row and steppers have visible keybo
 	).toBeLessThan(1);
 	await page.keyboard.press("Tab");
 	for (const selector of [
-		'[data-adjust="wpm"][data-delta="-5"]',
+		'[data-adjust="wpm"][data-direction="-1"]',
 		"#wpm",
-		'[data-adjust="wpm"][data-delta="5"]',
+		'[data-adjust="wpm"][data-direction="1"]',
 	]) {
 		const control = page.locator(selector);
 		await control.focus();
@@ -30,7 +30,7 @@ test("compact editor keeps its header on one row and steppers have visible keybo
 		});
 		expect(css).toEqual({ width: "3px", offset: "-4px", style: "solid" });
 	}
-	await page.locator('[data-adjust="wpm"][data-delta="5"]').click();
+	await page.locator('[data-adjust="wpm"][data-direction="1"]').click();
 	await expect(page.locator("#wpm")).toHaveValue("155");
 });
 
