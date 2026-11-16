@@ -2,6 +2,7 @@
 	"title": "WolfCue",
 	"pages": [
 		"index",
+		"add-to-moblin",
 		"getting-started",
 		"moblin",
 		"reader-controls",

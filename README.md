@@ -51,9 +51,9 @@ Public URL: <https://wolfcue.mrdemonwolf.dev>.
 
 Use Moblin's **private browser**, not a **Browser scene widget**: a scene
 widget appears in recorded output. The
-[Moblin guide](https://wolfcue.mrdemonwolf.dev/docs/moblin/#set-up-moblin)
-has a one-tap link that turns on Moblin's **Browser** quick button and opens
-it at WolfCue, plus manual steps. Moblin owns recording; WolfCue cannot
+[Add WolfCue to Moblin](https://wolfcue.mrdemonwolf.dev/docs/add-to-moblin/)
+has a one-tap link that turns on Moblin's **Browser** quick button and sets
+its home page to WolfCue, plus manual steps. Moblin owns recording; WolfCue cannot
 position its native window or guarantee recording continues.
 
 Safari and Moblin have separate storage. Paste or import inside Moblin,
@@ -70,7 +70,8 @@ or messaging limits; use a `.txt` file if that happens.
 **Saved on this device** means a local write succeeded, not that an archive
 exists. Browser storage can fail or be evicted. Export a backup. GitHub
 Pages receives IP/request metadata when serving files. WolfCue never uploads
-scripts. Only **Copy script link** puts text in a URL fragment (`#script=`),
+scripts. Only **Copy link for Moblin** or **Copy script link** puts text in a
+URL fragment (`#script=`),
 which is read in the browser and removed from the address after loading.
 Anyone with that link can read the text. Offline reopening is not guaranteed.
 
