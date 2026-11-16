@@ -103,3 +103,26 @@ test("speed presets set the pace in one tap and show the current one", async ({
 	await expect(page.locator("#settings-wpm")).toHaveValue("120");
 	await expect(page.locator("#reader-pace")).toHaveText("120 wpm");
 });
+
+test("export leads with the Moblin link and groups backups", async ({
+	page,
+}) => {
+	await openApp(page);
+	await page.locator("#export").click();
+	const dialog = page.locator("#export-dialog");
+	await expect(
+		dialog.getByRole("heading", { name: "Open in Moblin" }),
+	).toBeVisible();
+	await expect(
+		dialog.getByRole("heading", { name: "Save a backup" }),
+	).toBeVisible();
+	const order = await dialog.evaluate((element) =>
+		Array.from(element.querySelectorAll("button, input"), (node) => node.id),
+	);
+	expect(order.indexOf("copy-script-link")).toBeLessThan(
+		order.indexOf("download-file"),
+	);
+	expect(order.indexOf("download-file")).toBeLessThan(
+		order.indexOf("export-filename"),
+	);
+});
