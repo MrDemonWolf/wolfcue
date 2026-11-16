@@ -71,3 +71,25 @@ test("focus rings show for keyboard use but not after a tap", async ({
 	await page.locator("#script").click();
 	expect(await outline("#script")).toBe("solid");
 });
+
+test("focus that moves with no recent tap shows its ring", async ({ page }) => {
+	await page.clock.install();
+	await openApp(page);
+	await page.locator("#export").click();
+	await expect(page.locator("#export-dialog")).toBeVisible();
+	const done = page.locator('[data-close="export-dialog"]');
+	await expect(done).toBeFocused();
+	expect(await done.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe(
+		"none",
+	);
+	// Assistive tech or a later script moves focus without a key press.
+	await page.clock.runFor(1000);
+	await page.evaluate(() =>
+		document.querySelector<HTMLButtonElement>("#copy-text")?.focus(),
+	);
+	expect(
+		await page
+			.locator("#copy-text")
+			.evaluate((el) => getComputedStyle(el).outlineStyle),
+	).toBe("solid");
+});

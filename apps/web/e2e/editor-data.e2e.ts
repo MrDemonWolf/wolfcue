@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import {
 	expectClearOfExpandButton,
 	hidePage,
@@ -181,4 +181,79 @@ test("compact Settings rows scroll clear of the expand button", async ({
 			);
 		}
 	}
+});
+
+/** Holds CompressionStream or DecompressionStream output until window.releaseStream(). */
+async function gateStream(
+	page: Page,
+	kind: "CompressionStream" | "DecompressionStream",
+) {
+	await page.addInitScript((name) => {
+		const found = (
+			window as unknown as Record<string, typeof CompressionStream | undefined>
+		)[name];
+		if (!found) return;
+		const Real: typeof CompressionStream = found;
+		let release = () => {};
+		const gate = new Promise<void>((resolve) => {
+			release = resolve;
+		});
+		Object.assign(window, { releaseStream: () => release() });
+		class Gated {
+			readable: ReadableStream<Uint8Array>;
+			writable: WritableStream<BufferSource>;
+			constructor(format: CompressionFormat) {
+				const real = new Real(format);
+				this.writable = real.writable;
+				this.readable = real.readable.pipeThrough(
+					new TransformStream<Uint8Array, Uint8Array>({
+						async transform(chunk, controller) {
+							await gate;
+							controller.enqueue(chunk);
+						},
+					}),
+				);
+			}
+		}
+		Object.assign(window, { [name]: Gated });
+	}, kind);
+}
+
+test("editing while a compressed link inflates keeps the edit", async ({
+	page,
+}) => {
+	await openApp(page);
+	await page.locator("#export").click();
+	await page.locator("#copy-script-link").click();
+	await expect(page.locator("#script-link")).toHaveValue(/#script=z:/);
+	const link = await page.locator("#script-link").inputValue();
+	await gateStream(page, "DecompressionStream");
+	await page.goto("./");
+	await page.locator("#script").fill("Other words");
+	await page.goto(link);
+	await page.locator("#script").fill("Typed while the link was opening");
+	await page.evaluate(() =>
+		(window as unknown as { releaseStream: () => void }).releaseStream(),
+	);
+	await expect(page.locator("#file-status")).toHaveText(
+		"Link not loaded because the script changed. Open it again.",
+	);
+	await expect(page.locator("#script")).toHaveValue(
+		"Typed while the link was opening",
+	);
+	await expect(page.locator("#confirm-dialog")).toBeHidden();
+});
+
+test("copying before compression finishes uses the plain link at once", async ({
+	page,
+}) => {
+	await gateStream(page, "CompressionStream");
+	await openApp(page);
+	await page.locator("#export").click();
+	await page.locator("#copy-script-link").click();
+	const field = page.locator("#script-link");
+	await expect(field).toBeVisible();
+	const hash = new URL(await field.inputValue()).hash;
+	expect(hash.startsWith("#script=z:")).toBe(false);
+	expect(decodeURIComponent(hash.slice(8))).toBe(SCRIPT);
 });

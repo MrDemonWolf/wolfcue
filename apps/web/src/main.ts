@@ -49,17 +49,33 @@ let filename: string | null = null;
 const reader = createReader(() => settings, updateSettings, openSettings);
 const systemTheme = matchMedia("(prefers-color-scheme: dark)");
 // Focus rings follow the last kind of input: keyboard shows them, taps do not.
-document.addEventListener(
-	"pointerdown",
-	() => {
-		document.documentElement.dataset.input = "pointer";
-	},
-	{ capture: true, passive: true },
-);
+// Focus that moves with no recent tap (VoiceOver, scripts after a delay)
+// counts as keyboard, so assistive navigation keeps a visible ring.
+let lastPointerAt = Number.NEGATIVE_INFINITY;
+const markPointer = () => {
+	lastPointerAt = performance.now();
+	document.documentElement.dataset.input = "pointer";
+};
+document.addEventListener("pointerdown", markPointer, {
+	capture: true,
+	passive: true,
+});
+document.addEventListener("pointerup", markPointer, {
+	capture: true,
+	passive: true,
+});
 document.addEventListener(
 	"keydown",
 	(event) => {
 		if (!event.metaKey && !event.ctrlKey)
+			document.documentElement.dataset.input = "keyboard";
+	},
+	{ capture: true },
+);
+document.addEventListener(
+	"focusin",
+	() => {
+		if (performance.now() - lastPointerAt > 800)
 			document.documentElement.dataset.input = "keyboard";
 	},
 	{ capture: true },
@@ -514,24 +530,21 @@ updateSaveStatus();
  * which keeps Safari's clipboard permission for the tap.
  */
 let preparedLink: ScriptLinkResult | null = null;
-let linkJob: Promise<ScriptLinkResult> = Promise.resolve({
-	ok: false,
-	reason: "No script.",
-});
+let linkJob = 0;
+const linkBase = () => new URL(import.meta.env.BASE_URL, location.origin).href;
 function prepareScriptLink() {
 	const text = script.value;
-	const base = new URL(import.meta.env.BASE_URL, location.origin).href;
+	const job = ++linkJob;
 	preparedLink = null;
-	const job = compressText(text).then((compressed) =>
-		buildScriptLink(text, base, compressed),
-	);
-	linkJob = job;
-	void job.then((result) => {
-		if (linkJob === job) preparedLink = result;
+	void compressText(text).then((compressed) => {
+		if (job === linkJob)
+			preparedLink = buildScriptLink(text, linkBase(), compressed);
 	});
 }
 byId("copy-script-link").addEventListener("click", async () => {
-	const result = preparedLink ?? (await linkJob);
+	// If compression has not finished, copy the plain link now rather than
+	// wait and lose Safari's clipboard permission for this tap.
+	const result = preparedLink ?? buildScriptLink(script.value, linkBase());
 	if (!result.ok) {
 		writeText(byId("export-status"), result.reason);
 		return;
@@ -578,10 +591,16 @@ async function loadScriptLink() {
 	if (!payload) return;
 	history.replaceState(null, "", location.pathname + location.search);
 	const job = ++incomingJob;
+	const generation = importGeneration;
 	const incoming =
 		payload.kind === "text" ? payload.result : await inflateLink(payload.bytes);
 	// A newer link replaced this one while it was inflating.
 	if (job !== incomingJob) return;
+	// Typing, clearing or importing during inflation wins over the link.
+	if (generation !== importGeneration) {
+		fileStatus("Link not loaded because the script changed. Open it again.");
+		return;
+	}
 	// Reopening a link that matches the current script changes nothing.
 	if (incoming.ok && incoming.text === script.value) {
 		if (!reader.opened) fileStatus("This link matches your current script.");
