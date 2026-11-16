@@ -36,7 +36,6 @@ export default defineConfig({
 				main: resolve(import.meta.dirname, "index.html"),
 				missing: resolve(import.meta.dirname, "404.html"),
 			},
-			output: {},
 		},
 	},
 });
