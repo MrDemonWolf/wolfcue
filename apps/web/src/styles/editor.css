@@ -109,6 +109,10 @@
 .setup-panel {
 	border-left: 1px solid var(--line);
 	padding-left: 24px;
+}
+/* The stepper container query lives here, not on .setup-panel: before Safari
+   18.4 a query container also anchored the pinned, fixed Start reading. */
+.setup-controls {
 	container-type: inline-size;
 }
 .setup-panel h2 {
@@ -116,14 +120,14 @@
 	letter-spacing: -0.02em;
 	margin: 0 0 12px;
 }
-.setup-panel > label,
-.setup-panel > .control-label {
+.setup-controls > label,
+.setup-controls > .control-label {
 	font-size: 13px;
 	font-weight: 650;
 	display: block;
 	margin: 0 0 8px;
 }
-.setup-panel > select {
+.setup-controls > select {
 	width: 100%;
 	font-size: 14px;
 }
@@ -188,7 +192,7 @@
 #pace-hint:empty {
 	display: none;
 }
-.setup-panel > label[for="font-size"] {
+.setup-controls > label[for="font-size"] {
 	margin-top: 22px;
 }
 #start-reading {
@@ -301,9 +305,12 @@
 	}
 	/* Short landscape screens show Start reading without scrolling. The pace
 	   buttons name themselves, so the Pace label is read but not shown. */
-	.setup-panel > label[for="font-size"],
+	.setup-controls > label[for="font-size"],
 	#start-reading {
 		margin-top: 12px;
+	}
+	.intro a {
+		display: none;
 	}
 	.intro,
 	.setup-panel h2,
@@ -355,6 +362,9 @@
 		padding: 12px;
 	}
 	/* Keep the heading for screen readers and search, and give the first screen to the script. */
+	.intro a {
+		display: none;
+	}
 	.intro {
 		position: absolute;
 		width: 1px;
@@ -418,10 +428,18 @@
 	.site-footer {
 		flex: 0 0 auto;
 	}
+	/* No min-height: 0 here, so a tall setup panel scrolls the page instead of
+	   running into the storage note. Trimmed spacing keeps 1366x768 on one screen. */
 	.workspace {
 		flex: 1;
-		min-height: 0;
 		align-items: stretch;
+	}
+	.intro {
+		padding-block: 14px;
+	}
+	.setup-controls > label[for="font-size"],
+	#start-reading {
+		margin-top: 14px;
 	}
 	.script-panel {
 		display: flex;
@@ -536,4 +554,10 @@
 }
 #link-status:empty {
 	display: none;
+}
+@media (max-width: 300px) {
+	.pace-presets button {
+		padding-inline: 2px;
+		gap: 0 3px;
+	}
 }

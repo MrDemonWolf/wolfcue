@@ -260,7 +260,9 @@ test("supported fullscreen controls have room and remain reachable in Settings",
 	}
 });
 
-test("start options lead Settings in both contexts", async ({ page }) => {
+test("start options lead editor Settings and pace leads while reading", async ({
+	page,
+}) => {
 	await openApp(page);
 	const legends = () =>
 		page
@@ -276,10 +278,40 @@ test("start options lead Settings in both contexts", async ({ page }) => {
 	await start(page);
 	await page.locator("#reader-settings").click();
 	const order = await legends();
-	expect(order.indexOf("Reading session")).toBeLessThan(
-		order.indexOf("Reading pace"),
+	expect(order.indexOf("Reading pace")).toBeLessThan(
+		order.indexOf("Reading session"),
 	);
 	expect(order.indexOf("Reading session")).toBeLessThan(
 		order.indexOf("Script appearance"),
 	);
+});
+
+test("desktop panels never run into the storage note", async ({
+	page,
+}, info) => {
+	test.skip(
+		info.project.name !== "iphone-portrait",
+		"Explicit viewport matrix",
+	);
+	await openApp(page);
+	for (const size of [
+		{ width: 1366, height: 768 },
+		{ width: 1536, height: 730 },
+		{ width: 1920, height: 900 },
+	]) {
+		await page.setViewportSize(size);
+		const box = await page.evaluate(() => {
+			const bottom = (selector: string) =>
+				document.querySelector(selector)?.getBoundingClientRect().bottom ?? 0;
+			return {
+				panels: Math.max(bottom(".setup-panel"), bottom(".script-panel")),
+				note:
+					document.querySelector("#storage-note")?.getBoundingClientRect()
+						.top ?? 0,
+			};
+		});
+		expect(box.panels, `${size.width}x${size.height}`).toBeLessThanOrEqual(
+			box.note,
+		);
+	}
 });

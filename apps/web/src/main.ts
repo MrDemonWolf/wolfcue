@@ -371,6 +371,13 @@ byId("erase-data").addEventListener("click", () => {
 			store.erase();
 			script.value = "";
 			filename = null;
+			// Forget any prepared or shown script link too.
+			linkJob++;
+			preparedLink = null;
+			preparedText = null;
+			writeText(byId("link-status"), "");
+			byId<HTMLInputElement>("script-link").value = "";
+			byId<HTMLTextAreaElement>("copy-fallback").value = "";
 			settings = store.prefs;
 			applyTheme();
 			updateControls();
@@ -634,7 +641,7 @@ byId("quick-link").addEventListener("click", async () => {
 		await navigator.clipboard.writeText(result.url);
 		writeText(
 			byId("link-status"),
-			`Link copied. Open it in Moblin's browser.${longLinkNote(result.url)}`,
+			`Link copied. Open it in Moblin's private browser. Anyone with the link can read it.${longLinkNote(result.url)}`,
 		);
 	} catch {
 		// Blocked clipboard: hand over the selectable link in Export.

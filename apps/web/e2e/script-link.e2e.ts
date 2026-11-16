@@ -174,6 +174,12 @@ test("Copy link for Moblin on the main screen copies the short link", async ({
 	expect(new URL(copied).pathname).toBe(new URL(baseURL ?? "").pathname);
 	await expect(page.locator("#link-status")).toContainText("Link copied");
 	await expect(page.locator("#export-dialog")).toBeHidden();
+	// Erasing local data forgets the copied-link message too.
+	await page.locator("#editor-settings").click();
+	await page.locator("#erase-data").click();
+	await page.locator("#confirm-accept").click();
+	await expect(page.locator("#link-status")).toBeEmpty();
+	await expect(page.locator("#quick-link")).toBeDisabled();
 });
 
 test("a blocked clipboard hands the main-screen link to Export, selected", async ({

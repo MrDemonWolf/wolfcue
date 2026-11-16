@@ -38,6 +38,8 @@ body:has(dialog[open]) {
 	font-size: 22px;
 }
 .dialog-body {
+	/* Anchors visually hidden labels so they scroll with the content. */
+	position: relative;
 	min-width: 0;
 	min-height: 0;
 	overflow: auto;
@@ -165,7 +167,13 @@ summary {
 #export-status:empty {
 	display: none;
 }
+/* Stays in view while the backup buttons further down are used. */
 #export-status {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background: var(--surface);
+	padding-block: 4px;
 	margin: 0 0 12px;
 	font-size: 13px;
 	line-height: 1.6;
