@@ -1,9 +1,11 @@
 import { expect, test } from "bun:test";
 import {
+	clampSetting,
 	DEFAULT_SETTINGS,
 	fromStoredPrefs,
 	type NumericSetting,
 	nudgeSetting,
+	PACE_PRESETS,
 	PREFS_REVISION,
 	SETTING_LIMITS,
 	sanitizeSettings,
@@ -135,5 +137,16 @@ test("index.html number inputs match SETTING_LIMITS", async () => {
 			limits.max,
 			limits.step,
 		]);
+	}
+});
+
+test("speed presets are distinct, ordered and within limits", () => {
+	const speeds: number[] = PACE_PRESETS.map((preset) => preset.wpm);
+	expect(speeds).toEqual([...speeds].sort((a, b) => a - b));
+	expect(new Set(speeds).size).toBe(speeds.length);
+	expect(speeds).toContain(DEFAULT_SETTINGS.wpm);
+	for (const { wpm } of PACE_PRESETS) {
+		expect(clampSetting("wpm", wpm)).toBe(wpm);
+		expect(wpm % SETTING_LIMITS.wpm.step).toBe(0);
 	}
 });

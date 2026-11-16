@@ -74,3 +74,32 @@ test("export offers a dated file name", async ({ page }) => {
 		/^wolfcue-script-\d{4}-\d{2}-\d{2}\.txt$/,
 	);
 });
+
+test("speed presets set the pace in one tap and show the current one", async ({
+	page,
+}) => {
+	await openApp(page);
+	const preset = (wpm: number, scope = "#editor") =>
+		page.locator(`${scope} [data-preset-wpm="${wpm}"]`);
+	await expect(preset(150)).toHaveAttribute("aria-pressed", "true");
+	await expect(preset(180)).toHaveAccessibleName("Fast, 180 words per minute");
+	await preset(180).click();
+	await expect(page.locator("#wpm")).toHaveValue("180");
+	await expect(preset(180)).toHaveAttribute("aria-pressed", "true");
+	await expect(preset(150)).toHaveAttribute("aria-pressed", "false");
+	// Fine-tuning off a preset leaves none selected.
+	await page.locator('#editor [data-adjust="wpm"][data-direction="1"]').click();
+	await expect(
+		page.locator('#editor [data-preset-wpm][aria-pressed="true"]'),
+	).toHaveCount(0);
+	// Presets apply to words per minute only.
+	await page.locator('#pace-mode input[value="target"]').check();
+	await expect(page.locator("#editor .pace-presets")).toBeHidden();
+	await page.locator('#pace-mode input[value="wpm"]').check();
+	// Reader Settings has the same presets.
+	await start(page);
+	await page.locator("#reader-settings").click();
+	await preset(120, "#settings-dialog").click();
+	await expect(page.locator("#settings-wpm")).toHaveValue("120");
+	await expect(page.locator("#reader-pace")).toHaveText("120 wpm");
+});

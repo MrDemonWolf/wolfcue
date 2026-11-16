@@ -12,8 +12,9 @@ Paste your script. Set your pace. Start reading.
 ## Features
 
 - **Timed scrolling:** elapsed-time-based movement, words per minute, or
-  approximate target completion time, with pause, seek, and restart. The
-  reading line sits in the upper quarter so more upcoming text stays visible.
+  approximate target completion time, with one-tap Slow, Normal, and Fast
+  presets, pause, seek, and restart. The reading line sits in the upper
+  quarter so more upcoming text stays visible.
 - **Compact reader:** a top bar and Settings gear sized for small Moblin views,
   adjustable text, line spacing, alignment, mirror, guide, and an optional
   countdown that keeps the first line visible.

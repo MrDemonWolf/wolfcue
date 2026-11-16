@@ -34,6 +34,12 @@ export const SETTING_LIMITS = {
 	lineHeight: { min: 1.2, max: 2, step: 0.1 },
 } as const;
 export type NumericSetting = keyof typeof SETTING_LIMITS;
+/** One-tap speeds around a comfortable on-camera pace; the stepper fine-tunes. */
+export const PACE_PRESETS = [
+	{ label: "Slow", wpm: 120 },
+	{ label: "Normal", wpm: 150 },
+	{ label: "Fast", wpm: 180 },
+] as const;
 export function bounded(
 	value: unknown,
 	fallback: number,

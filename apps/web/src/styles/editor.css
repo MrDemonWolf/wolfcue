@@ -299,9 +299,15 @@
 	#editor {
 		padding-top: 14px;
 	}
-	/* Short landscape screens show Start reading without scrolling. */
+	/* Short landscape screens show Start reading without scrolling. The pace
+	   buttons name themselves, so the Pace label is read but not shown. */
+	.setup-panel > label[for="font-size"],
+	#start-reading {
+		margin-top: 12px;
+	}
 	.intro,
-	.setup-panel h2 {
+	.setup-panel h2,
+	#pace-label {
 		position: absolute;
 		width: 1px;
 		height: 1px;
@@ -479,4 +485,43 @@
 	.pace-options label {
 		flex-basis: 100%;
 	}
+}
+
+/* One-tap speed presets above the words-per-minute stepper. */
+:is(#editor, #settings-dialog) fieldset.pace-presets {
+	min-width: 0;
+	margin: 8px 0 0;
+	padding: 0;
+	border: 0;
+}
+.preset-row {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 6px;
+}
+.pace-presets button {
+	min-height: 44px;
+	padding: 4px 6px;
+	display: flex;
+	align-items: baseline;
+	align-content: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 0 6px;
+	font-size: 13px;
+	line-height: 1.25;
+}
+.pace-presets .preset-wpm {
+	font-size: 12px;
+	font-weight: 400;
+	color: var(--text-muted);
+	font-variant-numeric: tabular-nums;
+}
+.pace-presets button[aria-pressed="true"] {
+	border-color: var(--brand-text);
+	box-shadow: inset 0 0 0 1px var(--brand-text);
+	background: var(--bg);
+}
+.pace-presets + .stepper {
+	margin-top: 6px;
 }

@@ -23,6 +23,7 @@ import {
 import {
 	type NumericSetting,
 	nudgeSetting,
+	PACE_PRESETS,
 	type Settings,
 	sanitizeSettings,
 } from "./core/settings";
@@ -134,6 +135,13 @@ function updateControls() {
 	}
 	for (const field of document.querySelectorAll<HTMLElement>("[data-pace]"))
 		field.hidden = field.dataset.pace !== settings.paceMode;
+	for (const button of document.querySelectorAll<HTMLButtonElement>(
+		"[data-preset-wpm]",
+	))
+		button.setAttribute(
+			"aria-pressed",
+			String(settings.wpm === Number(button.dataset.presetWpm)),
+		);
 	writeText(
 		byId("pace-hint"),
 		settings.paceMode === "target"
@@ -294,6 +302,28 @@ for (const field of document.querySelectorAll<
 		updateSettings({ [field.dataset.setting ?? ""]: value });
 	});
 }
+for (const group of document.querySelectorAll<HTMLElement>(
+	".pace-presets .preset-row",
+))
+	for (const preset of PACE_PRESETS) {
+		const button = document.createElement("button");
+		button.type = "button";
+		button.dataset.presetWpm = String(preset.wpm);
+		button.setAttribute(
+			"aria-label",
+			`${preset.label}, ${preset.wpm} words per minute`,
+		);
+		const name = document.createElement("span");
+		name.textContent = preset.label;
+		const value = document.createElement("span");
+		value.className = "preset-wpm";
+		value.textContent = String(preset.wpm);
+		button.append(name, value);
+		button.addEventListener("click", () =>
+			updateSettings({ paceMode: "wpm", wpm: preset.wpm }),
+		);
+		group.append(button);
+	}
 for (const button of document.querySelectorAll<HTMLButtonElement>(
 	"[data-adjust]",
 )) {
