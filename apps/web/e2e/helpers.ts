@@ -53,3 +53,20 @@ export async function closeReaderControls(page: Page) {
 	if (await page.locator("#settings-dialog").isVisible())
 		await page.locator('[data-close="settings-dialog"]').click();
 }
+/** Opens the reader with a paused fake clock, so frames only advance on demand. */
+export async function startFrozen(
+	page: Page,
+	prefs: Record<string, unknown> = {},
+) {
+	await page.clock.install();
+	await openApp(page, prefs);
+	await page.clock.pauseAt(
+		new Date(await page.evaluate(() => Date.now() + 1000)),
+	);
+	await start(page);
+}
+export async function readingPosition(page: Page) {
+	return page
+		.locator("#reader")
+		.evaluate((reader) => Number(reader.dataset.position));
+}

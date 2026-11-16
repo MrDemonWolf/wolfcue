@@ -225,9 +225,21 @@ summary {
 #fullscreen-toggle {
 	margin-top: 12px;
 }
+.setting-stepper {
+	padding: 12px 0 16px;
+	border-bottom: 1px solid var(--line);
+	font-size: 14px;
+}
+.setting-stepper .stepper {
+	margin-top: 8px;
+}
 @media (max-width: 300px), (max-height: 300px) {
 	#settings-dialog fieldset {
 		margin-bottom: 22px;
+	}
+	/* Let the last rows scroll clear of Moblin's lower-right expand button. */
+	#settings-dialog .dialog-body {
+		padding-bottom: 60px;
 	}
 	#settings-dialog .setting-row {
 		min-height: 56px;

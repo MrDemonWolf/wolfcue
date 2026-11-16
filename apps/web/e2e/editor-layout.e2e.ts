@@ -14,9 +14,9 @@ test("compact editor keeps its header on one row and steppers have visible keybo
 	).toBeLessThan(1);
 	await page.keyboard.press("Tab");
 	for (const selector of [
-		'[data-adjust="wpm"][data-direction="-1"]',
+		'#editor [data-adjust="wpm"][data-direction="-1"]',
 		"#wpm",
-		'[data-adjust="wpm"][data-direction="1"]',
+		'#editor [data-adjust="wpm"][data-direction="1"]',
 	]) {
 		const control = page.locator(selector);
 		await control.focus();
@@ -30,7 +30,7 @@ test("compact editor keeps its header on one row and steppers have visible keybo
 		});
 		expect(css).toEqual({ width: "3px", offset: "-4px", style: "solid" });
 	}
-	await page.locator('[data-adjust="wpm"][data-direction="1"]').click();
+	await page.locator('#editor [data-adjust="wpm"][data-direction="1"]').click();
 	await expect(page.locator("#wpm")).toHaveValue("155");
 });
 
@@ -45,7 +45,7 @@ test("enlarged target time stays readable and its controls fit compact widths", 
 	await page.evaluate(() => {
 		const panel = document.querySelector<HTMLElement>(".setup-panel");
 		const label = document.querySelector<HTMLElement>(
-			'[data-pace="target"] label',
+			'#editor [data-pace="target"] label',
 		);
 		const input = document.querySelector<HTMLInputElement>("#target-seconds");
 		if (!panel || !label || !input) throw new Error("Target controls missing");
@@ -74,7 +74,7 @@ test("enlarged target time stays readable and its controls fit compact widths", 
 			geometry.parent?.right ?? width,
 		);
 		for (const button of await page
-			.locator('[data-pace="target"] button')
+			.locator('#editor [data-pace="target"] button')
 			.all()) {
 			const box = await button.boundingBox();
 			if (!box) throw new Error("Target stepper button missing");

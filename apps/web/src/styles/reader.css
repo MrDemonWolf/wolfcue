@@ -80,7 +80,7 @@
 	justify-content: space-between;
 	gap: 8px;
 	flex-wrap: wrap;
-	font-size: 11px;
+	font-size: 13px;
 	color: var(--text-muted);
 	padding: 8px 20px;
 }
@@ -172,7 +172,7 @@
 .reader-notice {
 	margin: 0;
 	padding: 8px 20px;
-	font-size: 11px;
+	font-size: 13px;
 	color: var(--text-muted);
 	flex: 0 0 100%;
 }

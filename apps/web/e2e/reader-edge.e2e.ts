@@ -109,14 +109,21 @@ test("seeking to the end stays paused; playback finishes and restart resets", as
 	await page.locator("#toggle-play").click();
 	await page.clock.runFor(16);
 	await expect(page.locator("#reader-state")).toHaveText("End of script");
-	await expect(page.locator("#toggle-play")).toBeDisabled();
+	await expect(page.locator("#toggle-play")).toHaveText("Restart");
+	await expect(page.locator("#toggle-play")).toBeEnabled();
 	const endpoints = await page.locator("#reader").evaluate((reader) => ({
 		position: reader.dataset.position,
 		end: reader.dataset.end,
 	}));
 	expect(endpoints.position).toBe(endpoints.end);
-	await openReaderControls(page);
-	await page.locator("#restart").click();
+	// A tap that lands as the script ends cannot restart the take.
+	await page.locator("#toggle-play").click();
+	await expect(page.locator("#reader")).toHaveAttribute(
+		"data-phase",
+		"finished",
+	);
+	await page.clock.runFor(700);
+	await page.locator("#toggle-play").click();
 	await expect(page.locator("#reader")).toHaveAttribute(
 		"data-phase",
 		"playing",

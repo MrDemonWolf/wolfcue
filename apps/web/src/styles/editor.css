@@ -163,7 +163,7 @@
 	font-size: 13px;
 	color: var(--text-muted);
 }
-#editor .stepper input[type="number"] {
+:is(#editor, #settings-dialog) .stepper input[type="number"] {
 	width: calc(5ch + 1rem);
 	max-width: 100%;
 	padding: 5px 0;
@@ -358,7 +358,7 @@
 		display: none;
 	}
 	.site-footer {
-		font-size: 10px;
+		font-size: 12px;
 	}
 	.site-footer .footer-bottom {
 		border: 0;

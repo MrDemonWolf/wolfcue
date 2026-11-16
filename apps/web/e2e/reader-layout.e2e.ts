@@ -121,6 +121,12 @@ for (const lineHeight of [1.5, 2]) {
 				}
 			}
 		}
+		// Leaving only reports a pause when it interrupted reading.
+		await page.locator("#toggle-play").click();
+		await expect(page.locator("#reader")).toHaveAttribute(
+			"data-phase",
+			"playing",
+		);
 		const position = await page
 			.locator("#reader")
 			.getAttribute("data-position");

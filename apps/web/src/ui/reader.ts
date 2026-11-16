@@ -1,9 +1,4 @@
-import {
-	type Anchor,
-	type Block,
-	captureAnchor,
-	resolveAnchor,
-} from "../core/anchor";
+import { type Block, captureAnchor, resolveAnchor } from "../core/anchor";
 import { formatClock } from "../core/clock-format";
 import { countdownValue } from "../core/countdown";
 import {
@@ -26,14 +21,19 @@ import { mapKey, type Shortcut } from "../core/shortcuts";
 import { countWords } from "../core/words";
 import { byId, showView, writeText } from "./dom";
 
+/** Ignore the main button briefly after the script ends, so a late Pause tap cannot restart a take. */
+const FINISH_GUARD_MS = 600;
+const WAKE_NOTICE = "Screen may lock.";
+
 export function createReader(
 	getSettings: () => Settings,
 	updateSettings: (patch: Partial<Settings>) => void,
 	openSettings: () => void,
 ) {
 	const reader = byId("reader");
-	const wideScreen = matchMedia("(min-width:700px)");
 	const compactScreen = matchMedia("(max-width:300px), (max-height:300px)");
+	const chrome = byId("reader-chrome");
+	const topbar = byId("reader-topbar");
 	const sessionControls = byId("paused-controls");
 	const sessionSettings = byId("reader-session-controls");
 	const settingsDialog = byId<HTMLDialogElement>("settings-dialog");
@@ -43,34 +43,57 @@ export function createReader(
 	const transform = byId("script-transform");
 	const toggle = byId<HTMLButtonElement>("toggle-play");
 	const slider = byId<HTMLInputElement>("seek");
+	const elapsedOutput = byId("elapsed");
+	const percentOutput = byId("percent");
+	const remainingText = byId("remaining");
+	const compactRemaining = byId("compact-remaining");
+	const overTarget = byId("over-target");
+	const readerState = byId("reader-state");
+	const readerPace = byId("reader-pace");
+	const progressFill = byId("progress-fill");
+	const countdown = byId("countdown");
+	const noticeText = byId("reader-notice");
+	const guide = byId("reading-guide");
+	const readDim = byId("read-dim");
+	const fullscreenToggle = byId("fullscreen-toggle");
 	let state = createEngine();
 	let opened = false;
 	let raf = 0;
 	let generation = 0;
 	let blocks: Block[] = [];
-	let anchor: Anchor = { block: 0, fraction: 0, ratio: 0 };
-	let anchorAt = 0;
 	let stageHeight = 0;
 	let guideOffset = 0;
 	let words = 0;
+	let typography = "";
+	let sliderValue = -1;
+	let finishedAt = 0;
+	let measurePending = false;
 	let wakeLock: WakeLockSentinel | null = null;
 	let wakePending = false;
-	let wakeNoticeShown = false;
+	let wakeUnavailable = false;
+	/** Active stage gesture: a tap toggles playback, a drag seeks while paused. */
+	let pointer: {
+		id: number;
+		x: number;
+		y: number;
+		position: number;
+		slop: number;
+		dragged: boolean;
+		seekable: boolean;
+	} | null = null;
 	const fullscreenSupported = Boolean(
 		document.fullscreenEnabled && document.documentElement.requestFullscreen,
 	);
 	byId("fullscreen-setting-row").hidden = !fullscreenSupported;
-	byId("fullscreen-toggle").hidden = !fullscreenSupported;
+	fullscreenToggle.hidden = !fullscreenSupported;
 	const pace = (): Pace => paceFromSettings(getSettings());
-	function cacheAnchor() {
-		anchor = captureAnchor(blocks, state.positionPx, state.layout.endPx);
-	}
+	/** Compact windows keep Restart, Exit and Position in Settings. */
 	function placeSessionControls() {
 		const inSettings =
 			compactScreen.matches ||
 			(settingsDialog.open &&
 				sessionControls.parentElement === sessionSettings);
-		const parent = inSettings ? sessionSettings : byId("reader-chrome");
+		const parent = inSettings ? sessionSettings : chrome;
 		if (sessionControls.parentElement !== parent) {
 			const focused =
 				document.activeElement instanceof HTMLElement &&
@@ -89,9 +112,8 @@ export function createReader(
 	}
 	function render() {
 		if (!opened) return;
-		placeSessionControls();
 		const phaseChanged = reader.dataset.phase !== state.phase;
-		const capChanged = byId("over-target").hidden !== !state.overTarget;
+		const capChanged = overTarget.hidden !== !state.overTarget;
 		reader.dataset.phase = state.phase;
 		reader.dataset.position = String(state.positionPx);
 		reader.dataset.elapsed = String(state.elapsedMs);
@@ -99,37 +121,33 @@ export function createReader(
 		const playing = state.phase === "playing";
 		const counting = state.phase === "countdown";
 		const finished = state.phase === "finished";
+		if (phaseChanged && finished) finishedAt = performance.now();
 		writeText(
 			toggle,
-			counting
-				? "Cancel"
-				: playing
-					? "Pause"
-					: finished
-						? "Finished"
-						: "Resume",
+			counting ? "Cancel" : playing ? "Pause" : finished ? "Restart" : "Resume",
 		);
-		toggle.disabled = finished;
 		sessionControls.hidden =
 			sessionControls.parentElement !== sessionSettings &&
-			(playing || counting) &&
-			!wideScreen.matches;
+			(playing || counting);
 		slider.disabled = playing || counting;
 		const ratio =
 			state.layout.endPx > 0 ? state.positionPx / state.layout.endPx : 0;
-		slider.value = String(Math.round(ratio * 1000));
-		slider.setAttribute(
-			"aria-valuetext",
-			`${Math.round(ratio * 100)}% through script`,
-		);
-		writeText(byId("elapsed"), formatClock(state.elapsedMs / 1000, "floor"));
-		writeText(byId("percent"), `${Math.round(ratio * 100)}%`);
+		const perMille = Math.round(ratio * 1000);
+		if (perMille !== sliderValue) {
+			sliderValue = perMille;
+			slider.value = String(perMille);
+			slider.setAttribute(
+				"aria-valuetext",
+				`${Math.round(ratio * 100)}% through script`,
+			);
+		}
+		writeText(elapsedOutput, formatClock(state.elapsedMs / 1000, "floor"));
+		writeText(percentOutput, `${Math.round(ratio * 100)}%`);
 		const remaining = `${formatClock(remainingSec(state.positionPx, state.layout.endPx, state.pxPerSec), "ceil")} left`;
-		writeText(byId("remaining"), remaining);
-		writeText(byId("compact-remaining"), remaining);
-		writeText(byId("over-target"), "Pace capped");
+		writeText(remainingText, remaining);
+		writeText(compactRemaining, remaining);
 		writeText(
-			byId("reader-state"),
+			readerState,
 			counting
 				? "Get ready"
 				: finished
@@ -139,40 +157,49 @@ export function createReader(
 						: "Paused",
 		);
 		writeText(
-			byId("reader-pace"),
+			readerPace,
 			state.pace.mode === "wpm"
 				? `${state.pace.wpm} wpm`
 				: `Target ${formatClock(state.pace.targetSec)}`,
 		);
-		byId("over-target").hidden = !state.overTarget;
-		byId("progress-fill").style.transform = `scaleX(${ratio})`;
+		overTarget.hidden = !state.overTarget;
+		progressFill.style.transform = `scaleX(${ratio})`;
 		const dpr = window.devicePixelRatio || 1;
 		const y = Math.round((guideOffset - state.positionPx) * dpr) / dpr;
 		transform.style.transform = `translate3d(0, ${y}px, 0)`;
-		byId("countdown").hidden = !counting;
-		if (counting)
+		countdown.hidden = !counting;
+		if (counting) {
+			const now = performance.now();
 			writeText(
-				byId("countdown"),
-				String(
-					countdownValue(
-						performance.now(),
-						state.countdownStartedMs ?? performance.now(),
-					) ?? 1,
-				),
+				countdown,
+				String(countdownValue(now, state.countdownStartedMs ?? now) ?? 1),
 			);
-		if (phaseChanged || capChanged) queueMicrotask(measure);
+		}
+		if (phaseChanged || capChanged) requestMeasure();
+	}
+	/** Paused controls that push the stage down on narrow screens. */
+	function reservedAboveStage(): number {
+		if (sessionControls.hidden || sessionControls.parentElement !== chrome)
+			return 0;
+		const sameRow =
+			sessionControls.offsetTop < topbar.offsetTop + topbar.offsetHeight;
+		return sameRow
+			? Math.max(0, sessionControls.offsetHeight - topbar.offsetHeight)
+			: sessionControls.offsetHeight;
 	}
 	function measure() {
+		measurePending = false;
 		if (!opened || stage.clientHeight === 0 || content.clientWidth === 0)
 			return;
-		cacheAnchor();
+		// Capture the reading position against the previous geometry first.
+		const anchor = captureAnchor(blocks, state.positionPx, state.layout.endPx);
 		stageHeight = stage.clientHeight;
 		const settings = getSettings();
-		const typography = getComputedStyle(content);
+		const style = getComputedStyle(content);
 		const lineHeight =
-			Number.parseFloat(typography.lineHeight) ||
-			Number.parseFloat(typography.fontSize) * settings.lineHeight;
-		guideOffset = guideOffsetPx(stageHeight, lineHeight);
+			Number.parseFloat(style.lineHeight) ||
+			Number.parseFloat(style.fontSize) * settings.lineHeight;
+		guideOffset = guideOffsetPx(stageHeight, lineHeight, reservedAboveStage());
 		stage.style.setProperty("--guide-y", `${guideOffset}px`);
 		stage.style.setProperty(
 			"--dim-y",
@@ -188,21 +215,27 @@ export function createReader(
 			{ endPx, words },
 			resolveAnchor(blocks, anchor, endPx),
 		);
-		cacheAnchor();
 		render();
 	}
-	wideScreen.addEventListener("change", render);
-	compactScreen.addEventListener("change", render);
+	function requestMeasure() {
+		if (measurePending) return;
+		measurePending = true;
+		queueMicrotask(measure);
+	}
+	compactScreen.addEventListener("change", () => {
+		placeSessionControls();
+		render();
+	});
 	settingsDialog.addEventListener("close", () => {
 		placeSessionControls();
 		if (opened) {
 			render();
-			queueMicrotask(measure);
+			requestMeasure();
 		}
 	});
-	window.addEventListener("resize", measure);
-	new ResizeObserver(measure).observe(stage);
-	new ResizeObserver(measure).observe(content);
+	const resizeObserver = new ResizeObserver(() => requestMeasure());
+	resizeObserver.observe(stage);
+	resizeObserver.observe(content);
 	function schedule() {
 		cancelAnimationFrame(raf);
 		raf = requestAnimationFrame(frame);
@@ -213,25 +246,30 @@ export function createReader(
 			if (countdownValue(now, state.countdownStartedMs ?? now) === null)
 				state = play(state, now);
 		} else state = step(state, now);
-		if (now - anchorAt >= 200) {
-			cacheAnchor();
-			anchorAt = now;
-		}
 		render();
 		if (state.phase === "playing" || state.phase === "countdown") schedule();
-		else cacheAnchor();
 	}
 	function pauseReader() {
 		generation++;
 		state = pause(state);
 		cancelAnimationFrame(raf);
-		cacheAnchor();
 		render();
-		queueMicrotask(measure);
+		requestMeasure();
 	}
 	function notice(message: string) {
-		writeText(byId("reader-notice"), message);
-		if (opened) queueMicrotask(measure);
+		if (noticeText.textContent === message) return;
+		noticeText.textContent = message;
+		if (opened) requestMeasure();
+	}
+	/** Starting or resuming clears old notices but keeps the wake lock warning. */
+	function clearNotice() {
+		notice(wakeUnavailable ? WAKE_NOTICE : "");
+	}
+	function setWakeUnavailable(unavailable: boolean) {
+		if (wakeUnavailable === unavailable) return;
+		wakeUnavailable = unavailable;
+		if (unavailable) notice(WAKE_NOTICE);
+		else if (noticeText.textContent === WAKE_NOTICE) notice("");
 	}
 	function wantsWakeLock() {
 		return (
@@ -253,10 +291,7 @@ export function createReader(
 		}
 		if (wakeLock || wakePending) return;
 		if (!("wakeLock" in navigator)) {
-			if (!wakeNoticeShown) {
-				notice("Screen may lock.");
-				wakeNoticeShown = true;
-			}
+			setWakeUnavailable(true);
 			return;
 		}
 		wakePending = true;
@@ -267,6 +302,7 @@ export function createReader(
 				return;
 			}
 			wakeLock = sentinel;
+			setWakeUnavailable(false);
 			sentinel.addEventListener(
 				"release",
 				() => {
@@ -275,10 +311,7 @@ export function createReader(
 				{ once: true },
 			);
 		} catch {
-			if (!wakeNoticeShown) {
-				notice("Screen may lock.");
-				wakeNoticeShown = true;
-			}
+			setWakeUnavailable(true);
 		} finally {
 			wakePending = false;
 		}
@@ -294,17 +327,18 @@ export function createReader(
 	}
 	document.addEventListener("fullscreenchange", () => {
 		writeText(
-			byId("fullscreen-toggle"),
+			fullscreenToggle,
 			document.fullscreenElement ? "Exit fullscreen" : "Enter fullscreen",
 		);
 	});
-	byId("fullscreen-toggle").addEventListener("click", toggleFullscreen);
+	fullscreenToggle.addEventListener("click", toggleFullscreen);
 	/**
 	 * Startup generation guard adapted from Pocket Teleprompter, Copyright (c) 2026 ttomohisa, MIT License.
 	 * https://github.com/ttomohisa/htmlapps-pocket-teleprompter/blob/ad05bf6202bdb9a20e168e1f67521f0a73de90a5/src/index.template.html#L330
 	 */
 	async function startSession(fullscreen = false) {
 		const token = ++generation;
+		clearNotice();
 		state = beginCountdown(state, performance.now());
 		render();
 		void syncWakeLock();
@@ -321,8 +355,8 @@ export function createReader(
 	function open(text: string) {
 		if (opened || !text.trim()) return;
 		opened = true;
+		wakeUnavailable = false;
 		notice("");
-		wakeNoticeShown = false;
 		showView(reader, true);
 		showView(editor, false);
 		document.body.classList.add("reading");
@@ -334,8 +368,11 @@ export function createReader(
 			content.append(block);
 		}
 		words = countWords(text);
+		blocks = [];
+		pointer = null;
+		sliderValue = -1;
 		state = createEngine(pace());
-		anchor = { block: 0, fraction: 0, ratio: 0 };
+		placeSessionControls();
 		applySettings();
 		measure();
 		reader.focus({ preventScroll: true });
@@ -345,10 +382,12 @@ export function createReader(
 		if (settingsDialog.open) settingsDialog.close();
 		pauseReader();
 		opened = false;
-		sessionSettings.hidden = true;
+		pointer = null;
+		placeSessionControls();
 		generation++;
 		showView(reader, false);
 		content.replaceChildren();
+		blocks = [];
 		showView(editor, true);
 		document.body.classList.remove("reading");
 		void syncWakeLock();
@@ -360,6 +399,7 @@ export function createReader(
 		if (state.phase === "playing" || state.phase === "countdown") pauseReader();
 		else if (state.phase === "paused") {
 			state = play(state, performance.now());
+			clearNotice();
 			void syncWakeLock();
 			render();
 			schedule();
@@ -367,7 +407,6 @@ export function createReader(
 	}
 	function seek(position: number) {
 		state = seekTo(state, position);
-		cacheAnchor();
 		render();
 	}
 	function restartReader() {
@@ -376,11 +415,9 @@ export function createReader(
 		reader.focus({ preventScroll: true });
 		pauseReader();
 		state = restart(state);
-		cacheAnchor();
 		void startSession();
 	}
 	function applySettings() {
-		if (opened) cacheAnchor();
 		const settings = getSettings();
 		content.style.setProperty("--reader-font", `${settings.fontSizePx}px`);
 		content.style.setProperty(
@@ -389,13 +426,17 @@ export function createReader(
 		);
 		content.style.setProperty("--reader-align", settings.align);
 		content.classList.toggle("mirrored", settings.mirror);
-		byId("reading-guide").hidden = !settings.guide;
-		byId("read-dim").hidden = !settings.guide;
+		guide.hidden = !settings.guide;
+		readDim.hidden = !settings.guide;
 		state = setPace(state, pace());
-		if (opened) {
+		if (!opened) return;
+		const next = `${settings.fontSizePx}|${settings.lineHeight}|${settings.align}`;
+		// Only typography changes move lines; pace and theme only need a render.
+		if (next !== typography) {
+			typography = next;
 			measure();
-			void syncWakeLock();
-		}
+		} else render();
+		void syncWakeLock();
 	}
 	function changePace(direction: number) {
 		const settings = getSettings();
@@ -414,6 +455,7 @@ export function createReader(
 	}
 	function shortcut(action: Shortcut) {
 		const settings = getSettings();
+		const line = settings.fontSizePx * settings.lineHeight;
 		switch (action) {
 			case "escape":
 				if (document.fullscreenElement)
@@ -430,10 +472,10 @@ export function createReader(
 				changePace(1);
 				break;
 			case "seek-back":
-				seek(state.positionPx - settings.fontSizePx * settings.lineHeight);
+				seek(state.positionPx - line);
 				break;
 			case "seek-forward":
-				seek(state.positionPx + settings.fontSizePx * settings.lineHeight);
+				seek(state.positionPx + line);
 				break;
 			case "page-back":
 				seek(state.positionPx - stageHeight * 0.8);
@@ -507,7 +549,10 @@ export function createReader(
 			return;
 		shortcut(action);
 	});
-	toggle.addEventListener("click", togglePlayback);
+	toggle.addEventListener("click", () => {
+		if (state.phase !== "finished") togglePlayback();
+		else if (performance.now() - finishedAt >= FINISH_GUARD_MS) restartReader();
+	});
 	byId("restart").addEventListener("click", restartReader);
 	byId("exit-reader").addEventListener("click", close);
 	byId("reader-settings").addEventListener("click", openSettings);
@@ -523,32 +568,29 @@ export function createReader(
 		},
 		{ passive: false },
 	);
-	let pointer: {
-		id: number;
-		y: number;
-		position: number;
-		dragged: boolean;
-		seekable: boolean;
-	} | null = null;
 	stage.addEventListener("pointerdown", (event) => {
-		if (event.button !== 0 || (pointer && pointer.id !== event.pointerId))
-			return;
+		if (event.button !== 0) return;
+		// A new primary pointer replaces a record whose release was lost.
+		if (pointer && pointer.id !== event.pointerId && !event.isPrimary) return;
+		const touch = event.pointerType === "touch" || event.pointerType === "pen";
 		pointer = {
 			id: event.pointerId,
+			x: event.clientX,
 			y: event.clientY,
 			position: state.positionPx,
+			slop: touch ? 10 : 5,
 			dragged: false,
 			seekable:
-				(event.pointerType === "touch" || event.pointerType === "pen") &&
-				(state.phase === "paused" || state.phase === "finished"),
+				touch && (state.phase === "paused" || state.phase === "finished"),
 		};
 		stage.setPointerCapture(event.pointerId);
 	});
 	stage.addEventListener("pointermove", (event) => {
 		if (!pointer || pointer.id !== event.pointerId) return;
-		const delta = pointer.y - event.clientY;
-		if (Math.abs(delta) > 5) pointer.dragged = true;
-		if (pointer.seekable && pointer.dragged) seek(pointer.position + delta);
+		const dy = pointer.y - event.clientY;
+		if (Math.hypot(event.clientX - pointer.x, dy) > pointer.slop)
+			pointer.dragged = true;
+		if (pointer.seekable && pointer.dragged) seek(pointer.position + dy);
 	});
 	stage.addEventListener("pointerup", (event) => {
 		if (!pointer || pointer.id !== event.pointerId) return;
@@ -556,13 +598,17 @@ export function createReader(
 		pointer = null;
 		if (tapped) togglePlayback();
 	});
-	stage.addEventListener("pointercancel", () => {
-		pointer = null;
-	});
+	const dropPointer = (event: PointerEvent) => {
+		if (pointer?.id === event.pointerId) pointer = null;
+	};
+	stage.addEventListener("pointercancel", dropPointer);
+	stage.addEventListener("lostpointercapture", dropPointer);
 	function onHidden() {
 		if (opened) {
+			const running = state.phase === "playing" || state.phase === "countdown";
+			pointer = null;
 			pauseReader();
-			notice("Paused after leaving.");
+			if (running) notice("Paused after leaving.");
 		}
 		void syncWakeLock();
 	}
