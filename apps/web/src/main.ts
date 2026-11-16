@@ -198,6 +198,15 @@ for (const button of document.querySelectorAll<HTMLButtonElement>(
 	);
 }
 for (const dialog of document.querySelectorAll<HTMLDialogElement>("dialog")) {
+	// WebKit can leave a focused text field partly clipped in a short dialog;
+	// settle it fully inside the scroll area instead.
+	dialog.addEventListener("focusin", (event) => {
+		if (
+			event.target instanceof HTMLInputElement ||
+			event.target instanceof HTMLTextAreaElement
+		)
+			event.target.scrollIntoView({ block: "nearest", inline: "nearest" });
+	});
 	dialog.addEventListener("click", (event) => {
 		if (event.target !== dialog) return;
 		const bounds = dialog.getBoundingClientRect();
