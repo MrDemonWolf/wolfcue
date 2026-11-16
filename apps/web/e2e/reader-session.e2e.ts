@@ -89,3 +89,48 @@ test("only an interrupted take reports a pause after leaving", async ({
 	await page.locator("#toggle-play").click();
 	await expect(notice).not.toHaveText("Paused after leaving.");
 });
+
+test("a wake lock the system revokes while reading shows a warning", async ({
+	page,
+}) => {
+	await page.addInitScript(() => {
+		const sentinels: EventTarget[] = [];
+		Object.assign(window, { wakeSentinels: sentinels });
+		Object.defineProperty(navigator, "wakeLock", {
+			configurable: true,
+			value: {
+				request: async () => {
+					const sentinel = Object.assign(new EventTarget(), {
+						released: false,
+						type: "screen",
+						release: async () => {},
+					});
+					sentinels.push(sentinel);
+					return sentinel;
+				},
+			},
+		});
+	});
+	await startFrozen(page);
+	const notice = page.locator("#reader-notice");
+	await expect
+		.poll(() =>
+			page.evaluate(
+				() =>
+					(window as unknown as { wakeSentinels: EventTarget[] }).wakeSentinels
+						.length,
+			),
+		)
+		.toBe(1);
+	await expect(notice).toBeEmpty();
+	await page.evaluate(() =>
+		(
+			window as unknown as { wakeSentinels: EventTarget[] }
+		).wakeSentinels[0]?.dispatchEvent(new Event("release")),
+	);
+	await expect(notice).toHaveText("Screen may lock.");
+	// Pausing and resuming requests a new lock, which clears the warning.
+	await page.locator("#toggle-play").click();
+	await page.locator("#toggle-play").click();
+	await expect(notice).toBeEmpty();
+});

@@ -93,8 +93,10 @@ click does not prove a file saved.
 ## Themes and visuals
 
 Follow system appearance initially; persist explicit Light or Dark via
-`wolfcue:theme` and apply the classic theme script before paint. App and docs
-use separate theme keys. Use the palette in `src/styles/tokens.css` rather
+`wolfcue:theme` and apply the classic theme script before paint. The quick
+theme button stores System when its choice matches the OS appearance, by owner
+decision; Settings can still pin Light or Dark. App and docs use separate
+theme keys. Use the palette in `src/styles/tokens.css` rather
 than guessing cyan values. Script and controls use system fonts; headings
 use local Montserrat. No external fonts, invented wolf artwork, or gradients.
 

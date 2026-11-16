@@ -91,10 +91,6 @@
 #over-target {
 	flex-basis: 100%;
 }
-#compact-remaining {
-	display: none;
-	font-variant-numeric: tabular-nums;
-}
 .stage {
 	position: relative;
 	flex: 1;
@@ -308,8 +304,7 @@
 		white-space: nowrap;
 	}
 	#remaining,
-	#reader-pace,
-	#compact-remaining {
+	#reader-pace {
 		display: none;
 	}
 	#over-target {

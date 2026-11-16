@@ -46,7 +46,6 @@ export function createReader(
 	const elapsedOutput = byId("elapsed");
 	const percentOutput = byId("percent");
 	const remainingText = byId("remaining");
-	const compactRemaining = byId("compact-remaining");
 	const overTarget = byId("over-target");
 	const readerState = byId("reader-state");
 	const readerPace = byId("reader-pace");
@@ -143,9 +142,10 @@ export function createReader(
 		}
 		writeText(elapsedOutput, formatClock(state.elapsedMs / 1000, "floor"));
 		writeText(percentOutput, `${Math.round(ratio * 100)}%`);
-		const remaining = `${formatClock(remainingSec(state.positionPx, state.layout.endPx, state.pxPerSec), "ceil")} left`;
-		writeText(remainingText, remaining);
-		writeText(compactRemaining, remaining);
+		writeText(
+			remainingText,
+			`${formatClock(remainingSec(state.positionPx, state.layout.endPx, state.pxPerSec), "ceil")} left`,
+		);
 		writeText(
 			readerState,
 			counting
@@ -306,7 +306,10 @@ export function createReader(
 			sentinel.addEventListener(
 				"release",
 				() => {
-					if (wakeLock === sentinel) wakeLock = null;
+					if (wakeLock !== sentinel) return;
+					wakeLock = null;
+					// The system revoked the lock while reading is still on screen.
+					if (wantsWakeLock()) setWakeUnavailable(true);
 				},
 				{ once: true },
 			);
