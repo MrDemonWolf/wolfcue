@@ -49,7 +49,10 @@ Public URL: <https://wolfcue.mrdemonwolf.dev>.
 ## Usage
 
 Use Moblin's **private browser**, not a **Browser scene widget**: a scene
-widget appears in recorded output. Moblin owns recording; WolfCue cannot
+widget appears in recorded output. The
+[Moblin guide](https://wolfcue.mrdemonwolf.dev/docs/moblin/#set-up-moblin)
+has a one-tap link that turns on Moblin's **Browser** quick button and opens
+it at WolfCue, plus manual steps. Moblin owns recording; WolfCue cannot
 position its native window or guarantee recording continues.
 
 Safari and Moblin have separate storage. Paste or import inside Moblin,
