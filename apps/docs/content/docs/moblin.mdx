@@ -11,10 +11,12 @@ one you opened. Confirm your capture setup by reviewing a saved recording.
 
 ## Large and small views
 
-Enter the WolfCue address in the large browser view and bookmark it there.
-Moblin's small view has a maximum side of roughly 250 points and can be smaller
-or rectangular. It has no address bar. WolfCue moves reader controls to the top
-and reserves the bottom-right corner for Moblin's native expand button.
+Enter the plain WolfCue address in the large browser view and bookmark it
+there before opening any script link; Moblin bookmarks whatever address it is
+showing. Moblin's small view has a maximum side of roughly 250 points and can
+be smaller or rectangular. It has no address bar. WolfCue moves reader controls
+to the top, pins **Start reading** at the bottom left of the editor, and
+reserves the bottom-right corner for Moblin's native expand button.
 
 The same web view is reused when changing size or hiding it. WolfCue preserves
 the current line on resize. If WebKit reports that the page is hidden, WolfCue
@@ -31,6 +33,12 @@ if different text is already saved. The script loads in the editor; select
 The link carries a text snapshot, not a Notion page URL or live document.
 Copy text from Notion into WolfCue before making the link. If a large link
 does not open, transfer the script as a UTF-8 `.txt` file instead.
+
+Moblin remembers the last address it opened, including a script link, and
+opens it again next time. WolfCue ignores a link that matches your current
+script and asks before loading different text. To make Moblin forget the link,
+tap the WolfCue logo after the script loads. This is based on Moblin's source
+code and still needs a device check.
 
 ## Saving and screen sleep
 

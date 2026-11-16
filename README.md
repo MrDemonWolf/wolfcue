@@ -1,8 +1,9 @@
 # WolfCue - Browser Teleprompter for Moblin
 
-WolfCue is an English-only, mobile-first teleprompter for reading a script
-in Moblin's private browser on the same iPhone that records. Scripts and
-preferences stay in this browser unless you choose to copy a script link.
+WolfCue is a mobile-first teleprompter, with an English interface, for
+reading a script in Moblin's private browser on the same iPhone that records.
+Scripts and preferences stay in this browser unless you choose to copy a
+script link.
 There are no accounts or uploads.
 Physical iPhone/Moblin behavior still requires the device checks below.
 
@@ -11,17 +12,20 @@ Paste your script. Set your pace. Start reading.
 ## Features
 
 - **Timed scrolling:** elapsed-time-based movement, words per minute, or
-  approximate target completion time, with pause, seek, and restart.
-- **Compact reader:** text controls for small Moblin views, adjustable text,
-  line spacing, alignment, mirror, guide, and optional countdown.
+  approximate target completion time, with pause, seek, and restart. The
+  reading line sits in the upper quarter so more upcoming text stays visible.
+- **Compact reader:** a top bar and Settings gear sized for small Moblin views,
+  adjustable text, line spacing, alignment, mirror, guide, and an optional
+  countdown that keeps the first line visible.
 - **Local scripts:** paste Unicode or import UTF-8 `.txt` files up to 1 MiB.
   Storage failures keep the current text in memory and show a warning.
 - **Script links:** choose **Export > Copy script link**, then open the link
   in Moblin to load a snapshot of the text. No account or sync is needed.
 - **Backup options:** share a file where supported, download `.txt`, or copy
   text. In-app browsers may block downloads; verify the saved file.
-- **Themes and access:** System, Light, and Dark choices, visible focus,
-  keyboard shortcuts, and optional wake lock/fullscreen where supported.
+- **Themes and access:** System, Light, and Dark choices plus a quick
+  light/dark button, visible focus, keyboard shortcuts, and optional wake
+  lock/fullscreen where supported.
 - **Static delivery:** one artifact for the app and Fumadocs guides. No
   camera, microphone, analytics, server, or service worker.
 
@@ -66,8 +70,9 @@ which is read in the browser and removed from the address after loading.
 Anyone with that link can read the text. Offline reopening is not guaranteed.
 
 **Pause** stops scrolling. While paused, seek with **Position**, touch/pen
-drag, or mouse wheel. **Restart** resets position and active reading time.
-Opening **Settings** pauses; closing it does not resume. Returning from a
+drag, or mouse wheel. **Restart** resets position and active reading time;
+at the end of the script the main button becomes **Restart**. Opening
+**Settings** with the gear button pauses; closing it does not resume. Returning from a
 hidden page also stays paused. Target time is approximate scroll completion,
 not speech measurement. Wake lock cannot prevent every iOS interruption.
 
@@ -99,16 +104,20 @@ also asks for device, iOS, and Moblin versions.
 - [ ] Paste synthetic text and confirm the saved status.
 - [ ] Set pace/text size, switch to small mode, and check Pause, time,
   Settings, and clearance around Moblin's expand button.
+- [ ] Compare 28, 32, and 36 px text in small mode at camera distance.
 - [ ] Start a local recording, then start reading with the countdown.
-- [ ] Read for 60 seconds, pausing/resuming at least twice; check smoothness.
+- [ ] Read for 60 seconds, pausing/resuming at least twice; check smoothness
+  and whether the reading line looks natural on camera.
 - [ ] Wait beyond Auto-Lock with keep-awake on and note screen behavior.
 - [ ] Toggle small/large while reading; check position and pause behavior.
 - [ ] Hide/re-show the browser; confirm paused state with no leap.
 - [ ] Rotate the phone and check position and layout.
 - [ ] Stop recording and review saved video/audio for interruptions and
   accidental script capture.
-- [ ] Try Import and each Export option; verify a backup actually saved.
-- [ ] Force-quit/reopen Moblin and check script/settings persistence.
+- [ ] Try Import and each Export option, including Download in Moblin;
+  verify a backup actually saved.
+- [ ] Open a script link, force-quit/reopen Moblin, and check
+  script/settings persistence and whether Moblin reopens the link.
 - [ ] Repeat paste/read checks in Safari and confirm separate storage.
 
 ## Tech Stack
@@ -203,38 +212,22 @@ BASE_PATH=/wolfcue/ bun run ci
 
 ### Deployment
 
-**Phase 9 is gated. Do not run these steps until the owner says go.** No
-push, Pages, DNS, or repository-settings change is part of local setup.
+The site is live at <https://wolfcue.mrdemonwolf.dev>. Every push to `main`
+runs `deploy.yml`, which builds the root artifact with docs at `/docs/` and
+deploys it to GitHub Pages. Before deploying, it checks that the Pages custom
+domain and the DNS-only CNAME match and that HTTPS has a valid certificate.
+No `CNAME` or `.nojekyll` file is needed for Actions deployment. Push only
+when the owner asks, and never cancel a deployment in progress.
 
-The prepared workflow uses a root build for `wolfcue.mrdemonwolf.dev`,
-with docs at `/docs/`. It refuses deployment until the Pages custom domain
-and DNS-only CNAME match and HTTPS has a valid certificate. No `CNAME` or
-`.nojekyll` file is required for Actions deployment.
+To redeploy the current `main` without a new commit:
 
-After approval:
+```bash
+gh workflow run deploy.yml -R MrDemonWolf/wolfcue --ref main
+```
 
-1. Push `main`. A pre-cutover deploy should fail at the guard.
-2. Enable Pages with Actions as the source and set the custom domain to
-   `wolfcue.mrdemonwolf.dev` in GitHub repository settings.
-3. In Cloudflare add DNS-only `CNAME wolfcue -> mrdemonwolf.github.io`.
-4. Wait for GitHub's certificate approval, enforce HTTPS, and restrict the
-   `github-pages` environment to `main`.
-5. Dispatch the deployment:
-
-   ```bash
-   gh workflow run deploy.yml -R MrDemonWolf/wolfcue --ref main
-   ```
-
-6. Verify app/docs/assets at the final origin, then run the device checklist.
-
-Use the final origin from the first real session: local storage is per
-origin. The workflow intentionally accepts an HTTPS 404 before the first
-site exists. If certificate issuance requires an initial deployment, the
-owner can review a one-time manual dispatch with `require_https=false`;
-the Pages cname and DNS guard still apply.
-
-The license-year workflow opens a PR when needed; GitHub must allow Actions
-to create pull requests. No workflow has been run as part of local setup.
+Local storage is per origin, so keep using the custom-domain origin. The
+license-year workflow opens a pull request each January when the year
+changes; approve its CI run from the pull request.
 
 ## Project Structure
 

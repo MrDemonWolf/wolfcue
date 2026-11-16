@@ -3,18 +3,27 @@ title: Reader controls
 description: Pause, seek, restart, and adjust the reader.
 ---
 
-Tap the script or select **Pause** to pause. **Resume** continues without
-restarting the countdown. The timer counts only active reading time; the
-percentage shows scroll progress, not how much you have spoken.
+Tap the script or select **Pause** to pause. A sideways swipe does nothing.
+**Resume** continues without restarting the countdown. The timer counts only
+active reading time; the percentage shows scroll progress, not how much you
+have spoken.
+
+The reading line sits in the upper quarter of the script area, so more
+upcoming text stays in view. Lines you have already read are dimmed. Turning
+off **Reading guide** removes both the line and the dimming.
 
 While paused, use **Position** to seek, drag the script with touch or pen, or
-use a mouse wheel. On compact screens, open **Settings**, then **Session
-controls** for **Position**, **Restart**, and **Exit**. On larger screens,
-these controls stay beside the reader. Seeking keeps elapsed time.
-**Restart** resets position and time and uses the countdown if enabled.
-**Exit** returns to the editor.
+use a mouse wheel. On compact screens, open Settings with the gear button,
+then **Session controls** for **Position**, **Restart**, and **Exit**. On
+larger screens, these controls appear above the script while paused and hide
+while reading. Pausing keeps the reading line in the same place on screen.
+Seeking keeps elapsed time. **Restart** resets position and time and uses the
+countdown if enabled. At the end of the script, the main button becomes
+**Restart**; it ignores taps for a moment after the last line so a late tap
+cannot restart your take. **Exit** returns to the editor.
 
-Opening **Settings** pauses the reader. Closing Settings leaves it paused.
+Opening **Settings** pauses the reader. Its **-** and **+** buttons adjust
+pace and text size. Closing Settings leaves the reader paused.
 Mirror affects only the script, so controls stay readable. Fullscreen appears
 only when the browser supports it; it is normally absent on iPhone.
 
@@ -40,3 +49,20 @@ keeps its normal button action.
 
 Changing text size, line spacing, alignment, or viewport size keeps the current
 script block and its reading fraction where possible.
+
+## Defaults
+
+| Setting | Default |
+| --- | --- |
+| Pace | 150 words per minute |
+| Text size | 36 px |
+| Line spacing | 1.5 |
+| Alignment | Left |
+| Reading guide | On |
+| Three-second countdown | On |
+| Keep screen awake | On |
+| Mirror | Off |
+| Theme | System |
+
+WolfCue saves only the settings you change, so settings you never touched
+follow future default updates.

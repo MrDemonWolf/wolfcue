@@ -22,8 +22,9 @@ request. Opening a link does not start scrolling automatically.
 
 Anyone with the link can read the text. The fragment is encoded, not
 encrypted; HTTPS protects the page request but does not make the copied
-link secret. Copies retained in a clipboard, message, or bookmark still
-contain the snapshot. Erasing local data does not revoke those copies.
+link secret. Copies retained in a clipboard, message, bookmark, browser
+history, or Moblin's remembered last address may still contain the snapshot.
+Erasing local data does not revoke those copies.
 
 ## Local storage
 
@@ -32,7 +33,7 @@ The app uses these namespaced keys:
 | Key | Content |
 | --- | --- |
 | `wolfcue:v1:script` | Your raw script text |
-| `wolfcue:v1:prefs` | Validated reader settings |
+| `wolfcue:v1:prefs` | Reader settings you changed from the defaults |
 | `wolfcue:theme` | Explicit Light or Dark choice; absent means System |
 
 Reading position is not saved across reloads. The docs use a separate theme
@@ -45,7 +46,8 @@ data after inactivity. Export a backup.
 
 ## Erase local data
 
-Open **Settings**, choose **Erase all local data**, and confirm. This removes
+Open Settings with the gear button, choose **Erase all local data**, and
+confirm. This removes
 the app's three keys and resets its in-memory script and preferences. It does
 not erase a downloaded file, a clipboard copy, or Fumadocs' theme preference.
 

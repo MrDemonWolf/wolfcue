@@ -8,8 +8,9 @@
 - TypeScript strict. Prefer platform APIs and existing dependencies.
 - No server, accounts, analytics, AI, camera, microphone, or service worker.
 - Never commit real scripts, script URLs, credentials, `PLAN.md`, or `.plan/`.
-- Conventional Commits. Do not push, publish, change Pages, DNS, or repository
-  settings until the owner explicitly authorizes Phase 9.
+- Conventional Commits. Push only when the owner asks: every push to `main`
+  deploys. Never change Pages, DNS, or repository settings without explicit
+  owner authorization.
 
 ## Commands
 
@@ -49,7 +50,8 @@ window or guarantee uninterrupted recording.
 
 Support compact viewports down to 200 by 180 CSS pixels. Keep the lower-right
 60 by 60 pixels free of reader controls in compact mode for Moblin's expand
-button. Essential controls have text and targets at least 44 by 44 pixels.
+button. Essential controls have an accessible text name (visible text or
+`aria-label`) and targets at least 44 by 44 pixels.
 
 Keep a floating-point engine position; never derive it from `scrollTop`.
 Use elapsed time with a 250 ms frame cap, compositor transforms, and cached
@@ -65,6 +67,8 @@ without owner-supplied evidence.
 ## Storage, import, and export
 
 Use only `wolfcue:theme`, `wolfcue:v1:prefs`, and `wolfcue:v1:script`.
+Prefs store only values that differ from `DEFAULT_SETTINGS`, tagged `rev: 2`;
+never edit `REVISION_1_DEFAULTS` in `settings.ts`.
 Guard the localStorage getter and every operation. Keep the current script
 in memory after a failed write and report that it is not saved. Debounce
 script writes 400 ms, flushing on pagehide and hidden visibility.
@@ -114,9 +118,9 @@ affiliated with, endorsed by, or sponsored by Moblin.
 
 ## Deployment
 
-Phase 9 requires explicit owner authorization. Until then all work is local.
-The prepared workflow deploys one merged artifact at the custom-domain root
-and checks Pages cname, DNS-only CNAME, and HTTPS first. Do not add `CNAME` or
+Production is live at the custom domain. Every push to `main` deploys one
+merged artifact at the custom-domain root after checking Pages cname,
+DNS-only CNAME, and HTTPS. Push only when the owner asks. Do not add `CNAME` or
 `.nojekyll` files. Never cancel an in-flight Pages deploy.
 
 ## Verifying changes

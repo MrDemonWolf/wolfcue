@@ -14,7 +14,9 @@ that word rate.
 ## Target time
 
 Choose 10 seconds to 60 minutes, in steps of 5 seconds. The default is 60
-seconds. This is the approximate time when scrolling reaches the end. It does
+seconds. When you switch to Target time and the saved target is too short for
+the script, WolfCue suggests a target that keeps your current words-per-minute
+pace. This is the approximate time when scrolling reaches the end. It does
 not measure speech, pauses in your delivery, or how many words you actually read.
 
 Speed is recalculated when you resume, seek, change pace, or change layout.
@@ -22,7 +24,8 @@ It uses the remaining distance and target time after active reading time.
 Paused and countdown time do not count. Seeking keeps the elapsed timer.
 
 To avoid an abrupt rush, target mode is capped at the speed corresponding to
-300 wpm. If the requested target needs a faster rate, WolfCue shows that the
-target will be exceeded and reports remaining time at the actual capped rate.
+300 wpm. If the requested target needs a faster rate, the editor estimate shows
+the capped time with **capped at 300 wpm**, and the reader shows **Pace
+capped** and reports remaining time at the actual capped rate.
 
 Use a short rehearsal to find a comfortable pace.
