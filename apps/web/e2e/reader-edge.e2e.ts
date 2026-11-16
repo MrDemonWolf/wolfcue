@@ -1,30 +1,17 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import {
 	closeReaderControls,
 	openApp,
 	openReaderControls,
+	readingPosition,
 	SCRIPT,
-	start,
+	startFrozen,
 } from "./helpers";
-
-async function freeze(page: Page, prefs: Record<string, unknown> = {}) {
-	await page.clock.install();
-	await openApp(page, prefs);
-	await page.clock.pauseAt(
-		new Date(await page.evaluate(() => Date.now() + 1000)),
-	);
-	await start(page);
-}
-async function readingPosition(page: Page) {
-	return page
-		.locator("#reader")
-		.evaluate((reader) => Number(reader.dataset.position));
-}
 
 test("paused touch drag and wheel seek; a tap toggles playback", async ({
 	page,
 }) => {
-	await freeze(page);
+	await startFrozen(page);
 	await page.locator("#toggle-play").click();
 	const stage = page.locator("#stage");
 	const before = await readingPosition(page);
@@ -81,7 +68,7 @@ test("paused touch drag and wheel seek; a tap toggles playback", async ({
 test("target mode reveals its speed cap and uses real remaining time", async ({
 	page,
 }) => {
-	await freeze(page, { paceMode: "target", targetSec: 10 });
+	await startFrozen(page, { paceMode: "target", targetSec: 10 });
 	await expect(page.locator("#over-target")).toBeVisible();
 	const words = Array.from(
 		new Intl.Segmenter("en", { granularity: "word" }).segment(SCRIPT),
@@ -99,7 +86,7 @@ test("target mode reveals its speed cap and uses real remaining time", async ({
 test("seeking to the end stays paused; playback finishes and restart resets", async ({
 	page,
 }) => {
-	await freeze(page);
+	await startFrozen(page);
 	await page.locator("#toggle-play").click();
 	await openReaderControls(page);
 	await page.locator("#seek").fill("1000");

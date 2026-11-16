@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openApp, start } from "./helpers";
+import { expectReaderControlsClear, openApp, start } from "./helpers";
 
 test("reader controls fit, touch targets and compact keep-out zone remain clear", async ({
 	page,
@@ -21,23 +21,7 @@ test("reader controls fit, touch targets and compact keep-out zone remain clear"
 				() => document.documentElement.scrollWidth <= innerWidth,
 			),
 		).toBe(true);
-		for (const control of await page
-			.locator("#reader button, #reader input")
-			.all()) {
-			if (!(await control.isVisible())) continue;
-			const box = await control.boundingBox();
-			expect(box).not.toBeNull();
-			if (!box) continue;
-			expect(box.width).toBeGreaterThanOrEqual(44);
-			expect(box.height).toBeGreaterThanOrEqual(44);
-			expect(box.x).toBeGreaterThanOrEqual(0);
-			expect(box.x + box.width).toBeLessThanOrEqual(size.width + 1);
-			if (size.width <= 300 || size.height <= 300)
-				expect(
-					box.x + box.width <= size.width - 60 ||
-						box.y + box.height <= size.height - 60,
-				).toBe(true);
-		}
+		await expectReaderControlsClear(page, size);
 	}
 });
 test("mirror flips script only and unsupported fullscreen remains hidden", async ({

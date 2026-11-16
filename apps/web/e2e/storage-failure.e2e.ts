@@ -27,7 +27,6 @@ for (const failure of ["getter", "read", "write", "corrupt"])
 		}, failure);
 		await page.goto("./");
 		await page.locator("#script").fill(SCRIPT);
-		await page.waitForTimeout(500);
 		await expect(page.locator("#script")).toHaveValue(SCRIPT);
 		await expect(page.locator("#save-status")).toContainText(
 			failure === "corrupt" ? "Saved" : "Not saved",
@@ -40,7 +39,9 @@ test("script and preferences persist and erase removes all three keys", async ({
 }) => {
 	await page.goto("./");
 	await page.locator("#script").fill(SCRIPT);
-	await page.waitForTimeout(500);
+	await expect
+		.poll(() => page.evaluate(() => localStorage.getItem("wolfcue:v1:script")))
+		.toBe(SCRIPT);
 	await page.reload();
 	await expect(page.locator("#script")).toHaveValue(SCRIPT);
 	await page.locator("#editor-settings").click();

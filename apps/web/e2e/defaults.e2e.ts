@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openApp, start } from "./helpers";
+import { openApp, openFrozen, start } from "./helpers";
 
 test("Target time starts reachable and the estimate stays honest", async ({
 	page,
@@ -21,11 +21,7 @@ test("Target time starts reachable and the estimate stays honest", async ({
 });
 
 test("countdown leaves the opening line visible below it", async ({ page }) => {
-	await page.clock.install();
-	await openApp(page, { countdown: true });
-	await page.clock.pauseAt(
-		new Date(await page.evaluate(() => Date.now() + 1000)),
-	);
+	await openFrozen(page, { countdown: true });
 	await start(page);
 	await expect(page.locator("#countdown")).toHaveText("3");
 	const geometry = await page.evaluate(() => {

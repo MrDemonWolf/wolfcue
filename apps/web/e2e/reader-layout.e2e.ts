@@ -1,6 +1,8 @@
 import { expect, type Page, test } from "@playwright/test";
 import {
 	closeReaderControls,
+	denyWakeLock,
+	expectReaderControlsClear,
 	hidePage,
 	openApp,
 	openReaderControls,
@@ -44,17 +46,7 @@ for (const lineHeight of [1.5, 2]) {
 	test(`compact reader keeps a whole line with capped pace and wake denial at line spacing ${lineHeight}`, async ({
 		page,
 	}) => {
-		await page.addInitScript(() => {
-			Object.defineProperty(navigator, "wakeLock", {
-				configurable: true,
-				value: {
-					request: () =>
-						Promise.reject(
-							new DOMException("Synthetic denial", "NotAllowedError"),
-						),
-				},
-			});
-		});
+		await denyWakeLock(page);
 		await page.clock.install();
 		await openApp(page, {
 			fontSizePx: 36,
@@ -100,25 +92,7 @@ for (const lineHeight of [1.5, 2]) {
 					"data-phase",
 					"paused",
 				);
-				for (const control of await page
-					.locator("#reader button, #reader input")
-					.all()) {
-					if (!(await control.isVisible())) continue;
-					const box = await control.boundingBox();
-					if (!box) throw new Error("Reader control missing geometry");
-					expect(box.width).toBeGreaterThanOrEqual(44);
-					expect(box.height).toBeGreaterThanOrEqual(44);
-					expect(box.x).toBeGreaterThanOrEqual(0);
-					expect(box.y).toBeGreaterThanOrEqual(0);
-					expect(box.x + box.width).toBeLessThanOrEqual(size.width + 1);
-					expect(box.y + box.height).toBeLessThanOrEqual(size.height + 1);
-					if (size.width <= 300 || size.height <= 300) {
-						expect(
-							box.x + box.width <= size.width - 60 ||
-								box.y + box.height <= size.height - 60,
-						).toBe(true);
-					}
-				}
+				await expectReaderControlsClear(page, size);
 			}
 		}
 		// Leaving only reports a pause when it interrupted reading.

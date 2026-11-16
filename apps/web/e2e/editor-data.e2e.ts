@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { hidePage, openApp, SCRIPT, start } from "./helpers";
+import {
+	expectClearOfExpandButton,
+	hidePage,
+	openApp,
+	SCRIPT,
+	start,
+} from "./helpers";
 
 test("an empty number field keeps the current value", async ({ page }) => {
 	await openApp(page);
@@ -138,12 +144,7 @@ test("Start reading stays in reach on small and short screens", async ({
 		expect(box.y + box.height, where).toBeLessThanOrEqual(size.height);
 		expect(box.height, where).toBeGreaterThanOrEqual(44);
 		expect(box.height, `${where} single line`).toBeLessThan(60);
-		if (size.width <= 300 || size.height <= 300)
-			expect(
-				box.x + box.width <= size.width - 60 ||
-					box.y + box.height <= size.height - 60,
-				`${where} clear of the expand button`,
-			).toBe(true);
+		expectClearOfExpandButton(box, size, "Start reading");
 	}
 });
 
@@ -171,11 +172,13 @@ test("compact Settings rows scroll clear of the expand button", async ({
 			if (!(await control.isVisible())) continue;
 			const box = await control.boundingBox();
 			if (!box) continue;
-			expect(
-				box.x + box.width <= size.width - 60 ||
-					box.y + box.height <= size.height - 60,
-				`${size.width}x${size.height} ${await control.evaluate((element) => element.id || element.textContent?.slice(0, 30))}`,
-			).toBe(true);
+			expectClearOfExpandButton(
+				box,
+				size,
+				await control.evaluate(
+					(element) => element.id || element.textContent?.slice(0, 30) || "",
+				),
+			);
 		}
 	}
 });

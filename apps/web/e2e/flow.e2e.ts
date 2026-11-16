@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
 	closeReaderControls,
-	openApp,
+	openFrozen,
 	openReaderControls,
 	position,
 	start,
@@ -10,11 +10,7 @@ import {
 test("configure, countdown, play, pause, seek, resume, restart and exit", async ({
 	page,
 }) => {
-	await page.clock.install();
-	await openApp(page, { countdown: true });
-	await page.clock.pauseAt(
-		new Date(await page.evaluate(() => Date.now() + 1000)),
-	);
+	await openFrozen(page, { countdown: true });
 	await page.locator("#wpm").fill("180");
 	await page.locator("#wpm").dispatchEvent("change");
 	await start(page);
@@ -59,11 +55,7 @@ test("configure, countdown, play, pause, seek, resume, restart and exit", async 
 test("elapsed timing, stalled frames and block anchors survive layout changes", async ({
 	page,
 }) => {
-	await page.clock.install();
-	await openApp(page);
-	await page.clock.pauseAt(
-		new Date(await page.evaluate(() => Date.now() + 1000)),
-	);
+	await openFrozen(page);
 	await start(page);
 	const metrics = () =>
 		page.locator("#reader").evaluate((el) => ({
