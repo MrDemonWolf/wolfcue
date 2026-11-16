@@ -44,3 +44,16 @@ test("UTF-8 size is counted in bytes rather than characters", () => {
 	});
 	expect(validateImport(bytes(`${text}a`), "unicode.txt").ok).toBe(false);
 });
+test("rejections carry a problem code", () => {
+	const problems = [
+		[bytes("x"), "a.pdf", "type"],
+		[new Uint8Array(MAX_TEXT_BYTES + 1), "a.txt", "size"],
+		[new Uint8Array([0xc3, 0x28]), "a.txt", "encoding"],
+		[bytes("a\0b"), "a.txt", "nul"],
+		[bytes(" "), "a.txt", "empty"],
+	] as const;
+	for (const [content, name, problem] of problems) {
+		const result = validateImport(content, name);
+		expect(result.ok ? null : result.problem).toBe(problem);
+	}
+});

@@ -53,3 +53,18 @@ test("inclusive byte limit is shared with text import", () => {
 		readScriptLink(`#script=${"%41".repeat(MAX_TEXT_BYTES + 1)}`)?.ok,
 	).toBe(false);
 });
+test("link problems use link wording, not file wording", () => {
+	expect(readScriptLink("#script=")).toEqual({
+		ok: false,
+		reason: "This script link is empty.",
+	});
+	expect(readScriptLink("#script=%00")).toEqual({
+		ok: false,
+		reason: "This script link contains invalid text.",
+	});
+	const big = buildScriptLink("a".repeat(MAX_TEXT_BYTES + 1), "https://e.com/");
+	expect(big).toEqual({
+		ok: false,
+		reason: "This script is larger than 1 MiB. Export a .txt file instead.",
+	});
+});

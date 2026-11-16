@@ -299,14 +299,17 @@
 	#editor {
 		padding-top: 14px;
 	}
-	.intro {
-		padding: 14px 0;
-	}
-	.intro h1 {
-		font-size: 25px;
-	}
-	.intro > p:last-child {
-		display: none;
+	/* Short landscape screens show Start reading without scrolling. */
+	.intro,
+	.setup-panel h2 {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
 	}
 	#script {
 		height: 225px;
@@ -342,8 +345,39 @@
 		font-size: 13px;
 	}
 	#script {
-		height: 160px;
+		height: 120px;
 		padding: 12px;
+	}
+	/* Keep the heading for screen readers and search, and give the first screen to the script. */
+	.intro {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+	/* Start reading stays in reach, clear of Moblin's lower-right expand button. */
+	#editor {
+		padding-bottom: 66px;
+	}
+	#start-reading {
+		position: fixed;
+		left: max(10px, env(safe-area-inset-left));
+		right: 70px;
+		bottom: max(10px, env(safe-area-inset-bottom));
+		z-index: 1;
+		width: auto;
+		min-height: 44px;
+		margin: 0;
+		padding: 8px 12px;
+		justify-content: center;
+		white-space: nowrap;
+	}
+	#start-reading span {
+		display: none;
 	}
 	.file-actions {
 		gap: 5px;

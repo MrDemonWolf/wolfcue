@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { countWords } from "./words";
+import { countWords, previewText } from "./words";
 
 test("word count supports Unicode and blank text", () => {
 	expect(countWords("Hello world")).toBe(2);
@@ -22,4 +22,10 @@ test("whitespace fallback works without Segmenter", () => {
 			configurable: true,
 		});
 	}
+});
+test("previews are one short line and keep whole code points", () => {
+	expect(previewText("  Hello\n\n world  ")).toBe("Hello world");
+	expect(previewText("a".repeat(70))).toBe(`${"a".repeat(60)}...`);
+	expect(previewText("🐺".repeat(61))).toBe(`${"🐺".repeat(60)}...`);
+	expect(previewText("")).toBe("");
 });

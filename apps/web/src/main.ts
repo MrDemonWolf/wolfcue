@@ -12,7 +12,11 @@ import {
 	paceFromSettings,
 	seedTargetOnSwitch,
 } from "./core/pace";
-import { buildScriptLink, readScriptLink } from "./core/script-link";
+import {
+	buildScriptLink,
+	LONG_LINK_CHARS,
+	readScriptLink,
+} from "./core/script-link";
 import {
 	type NumericSetting,
 	nudgeSetting,
@@ -21,7 +25,7 @@ import {
 } from "./core/settings";
 import { createStore, getStorage } from "./core/storage";
 import { resolveTheme } from "./core/theme";
-import { countWords } from "./core/words";
+import { countWords, previewText } from "./core/words";
 import { byId, writeText } from "./ui/dom";
 import { createReader } from "./ui/reader";
 
@@ -32,7 +36,8 @@ script.value = store.script;
 const settingsDialog = byId<HTMLDialogElement>("settings-dialog");
 const confirmation = byId<HTMLDialogElement>("confirm-dialog");
 const exportDialog = byId<HTMLDialogElement>("export-dialog");
-let confirmAction: (() => void) | null = null;
+/** The open confirmation: what Accept does, and what to report on any other way out. */
+let pending: { accept: () => void; cancel?: () => void } | null = null;
 let importGeneration = 0;
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
 /** Name to offer on export; null means the dated default. */
@@ -40,15 +45,27 @@ let filename: string | null = null;
 const reader = createReader(() => settings, updateSettings, openSettings);
 const systemTheme = matchMedia("(prefers-color-scheme: dark)");
 
+let lastSaveStatus = store.status;
+/** Visible save state; only a new failure is announced, through #file-status. */
 function updateSaveStatus() {
+	const status = store.status;
 	writeText(
 		byId("save-status"),
-		store.status === "saved"
+		status === "saved"
 			? "Saved on this device"
-			: store.status === "pending"
+			: status === "pending"
 				? "Saving..."
 				: "Not saved: storage is unavailable",
 	);
+	if (status === "not-saved" && lastSaveStatus !== "not-saved")
+		fileStatus("Not saved: storage is unavailable. Export a copy.");
+	lastSaveStatus = status;
+}
+/** Status suffix after replacing the script, honest about failed saves. */
+function savedNote() {
+	return store.status === "not-saved"
+		? " Not saved on this device; export a copy."
+		: " Keep an exported copy as a backup.";
 }
 function flushScript() {
 	clearTimeout(saveTimer);
@@ -113,8 +130,13 @@ function updateStats() {
 }
 function invalidateImport() {
 	importGeneration++;
-	if (confirmation.open) confirmation.close();
-	confirmAction = null;
+	if (pending || confirmation.open) dismissConfirm();
+	if (byId("file-status").textContent === "Reading file...") fileStatus("");
+}
+function replaceScript(text: string, name: string | null = null) {
+	script.value = text;
+	filename = name;
+	saveScript(true);
 }
 function saveScript(immediate = false) {
 	store.setScript(script.value);
@@ -135,28 +157,39 @@ function ask(
 	message: string,
 	accept: string,
 	action: () => void,
+	onCancel?: () => void,
 ) {
 	writeText(byId("confirm-title"), title);
 	writeText(byId("confirm-message"), message);
 	writeText(byId("confirm-accept"), accept);
-	confirmAction = action;
+	pending = { accept: action, cancel: onCancel };
 	confirmation.showModal();
 	byId("confirm-cancel").focus();
 }
-byId("confirm-cancel").addEventListener("click", () => {
-	confirmAction = null;
-	confirmation.close();
-});
-byId("confirm-accept").addEventListener("click", () => {
-	const action = confirmAction;
-	confirmAction = null;
-	confirmation.close();
-	action?.();
-});
-confirmation.addEventListener("cancel", () => {
-	confirmAction = null;
+/** Cancel, Escape, a backdrop tap and newer actions all leave through here. */
+function dismissConfirm() {
+	const current = pending;
+	pending = null;
 	importGeneration++;
+	if (confirmation.open) confirmation.close();
+	current?.cancel?.();
+}
+byId("confirm-cancel").addEventListener("click", dismissConfirm);
+byId("confirm-accept").addEventListener("click", () => {
+	const current = pending;
+	pending = null;
+	confirmation.close();
+	current?.accept();
 });
+confirmation.addEventListener("cancel", (event) => {
+	event.preventDefault();
+	dismissConfirm();
+});
+/** One-line description of incoming text so a replacement is recognizable. */
+function describeText(text: string) {
+	const words = countWords(text);
+	return `"${previewText(text)}" (${words.toLocaleString()} ${words === 1 ? "word" : "words"})`;
+}
 for (const button of document.querySelectorAll<HTMLButtonElement>(
 	"[data-close]",
 )) {
@@ -174,11 +207,8 @@ for (const dialog of document.querySelectorAll<HTMLDialogElement>("dialog")) {
 			event.clientY < bounds.top ||
 			event.clientY > bounds.bottom
 		) {
-			if (dialog === confirmation) {
-				confirmAction = null;
-				importGeneration++;
-			}
-			dialog.close();
+			if (dialog === confirmation) dismissConfirm();
+			else dialog.close();
 		}
 	});
 }
@@ -201,11 +231,20 @@ for (const field of document.querySelectorAll<
 			!field.checked
 		)
 			return;
+		// An empty or partial number restores the current value instead of the minimum.
+		if (
+			field instanceof HTMLInputElement &&
+			field.type === "number" &&
+			(field.value.trim() === "" || !Number.isFinite(field.valueAsNumber))
+		) {
+			updateControls();
+			return;
+		}
 		const value =
 			field instanceof HTMLInputElement && field.type === "checkbox"
 				? field.checked
 				: field instanceof HTMLInputElement && field.type === "number"
-					? Number(field.value)
+					? field.valueAsNumber
 					: field.value;
 		updateSettings({ [field.dataset.setting ?? ""]: value });
 	});
@@ -237,9 +276,7 @@ byId("clear").addEventListener("click", () => {
 		"This discards the current script from WolfCue. Export a copy first if you need it.",
 		"Clear",
 		() => {
-			script.value = "";
-			filename = null;
-			saveScript(true);
+			replaceScript("");
 			script.focus();
 		},
 	);
@@ -301,20 +338,20 @@ async function importFile(file: File | undefined) {
 		}
 		const apply = () => {
 			if (token !== importGeneration || reader.opened) return;
-			script.value = result.text;
-			filename = textFileName(file.name);
-			saveScript(true);
-			fileStatus("Script imported. Keep an exported copy as a backup.");
+			replaceScript(result.text, textFileName(file.name));
+			fileStatus(`Script imported.${savedNote()}`);
 			script.focus();
 		};
-		if (script.value.trim() && script.value !== result.text)
+		if (script.value.trim() && script.value !== result.text) {
+			fileStatus("");
 			ask(
 				"Replace script?",
-				"This file contains different text. Replace your current script?",
+				`This file contains different text: ${describeText(result.text)}. Replace your current script?`,
 				"Replace",
 				apply,
+				() => fileStatus("Import canceled. Your script has not changed."),
 			);
-		else apply();
+		} else apply();
 	} catch {
 		if (token === importGeneration)
 			fileStatus("Could not read this file. Your script has not changed.");
@@ -455,18 +492,22 @@ byId("copy-script-link").addEventListener("click", async () => {
 	field.hidden = false;
 	byId("script-link-label").hidden = false;
 	byId("script-link-hint").hidden = false;
+	const long =
+		result.url.length > LONG_LINK_CHARS
+			? ` This link is ${Math.ceil(result.url.length / 1024)} KB; if it will not open, use a .txt file instead.`
+			: "";
 	try {
 		await navigator.clipboard.writeText(result.url);
 		writeText(
 			byId("export-status"),
-			"Script link copied. Open it in Moblin's private browser.",
+			`Script link copied. Open it in Moblin's private browser.${long}`,
 		);
 	} catch {
 		field.focus();
 		field.select();
 		writeText(
 			byId("export-status"),
-			"Select the script link below and copy it.",
+			`Select the script link below and copy it.${long}`,
 		);
 	}
 });
@@ -474,6 +515,11 @@ function loadScriptLink() {
 	const incoming = readScriptLink(location.hash);
 	if (!incoming) return;
 	history.replaceState(null, "", location.pathname + location.search);
+	// Reopening a link that matches the current script changes nothing.
+	if (incoming.ok && incoming.text === script.value) {
+		if (!reader.opened) fileStatus("This link matches your current script.");
+		return;
+	}
 	invalidateImport();
 	if (reader.opened) reader.pause();
 	if (!incoming.ok) {
@@ -486,19 +532,18 @@ function loadScriptLink() {
 	const apply = () => {
 		if (token !== importGeneration) return;
 		if (reader.opened) reader.close();
-		script.value = incoming.text;
-		filename = null;
-		saveScript(true);
+		replaceScript(incoming.text);
 		fileStatus(
-			"Linked script loaded. Choose Start reading when you are ready.",
+			`Linked script loaded. Choose Start reading when you are ready.${store.status === "not-saved" ? " Not saved on this device." : ""}`,
 		);
 	};
-	if (script.value.trim() && script.value !== incoming.text)
+	if (script.value.trim())
 		ask(
 			"Load linked script?",
-			"This link contains different text. Replace your current script?",
+			`This link contains different text: ${describeText(incoming.text)}. If you did not just open a link, choose Cancel.`,
 			"Load script",
 			apply,
+			() => fileStatus("Link not loaded. Your script has not changed."),
 		);
 	else apply();
 }
