@@ -44,6 +44,22 @@ let saveTimer: ReturnType<typeof setTimeout> | undefined;
 let filename: string | null = null;
 const reader = createReader(() => settings, updateSettings, openSettings);
 const systemTheme = matchMedia("(prefers-color-scheme: dark)");
+// Focus rings follow the last kind of input: keyboard shows them, taps do not.
+document.addEventListener(
+	"pointerdown",
+	() => {
+		document.documentElement.dataset.input = "pointer";
+	},
+	{ capture: true, passive: true },
+);
+document.addEventListener(
+	"keydown",
+	(event) => {
+		if (!event.metaKey && !event.ctrlKey)
+			document.documentElement.dataset.input = "keyboard";
+	},
+	{ capture: true },
+);
 
 let lastSaveStatus = store.status;
 /** Visible save state; only a new failure is announced, through #file-status. */

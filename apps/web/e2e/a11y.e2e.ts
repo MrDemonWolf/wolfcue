@@ -43,3 +43,31 @@ test("settings icons have accessible names and usable touch targets", async ({
 		await expect(button).toBeFocused();
 	}
 });
+
+test("focus rings show for keyboard use but not after a tap", async ({
+	page,
+}) => {
+	await openApp(page);
+	const outline = (selector: string) =>
+		page
+			.locator(selector)
+			.evaluate((element) => getComputedStyle(element).outlineStyle);
+	await page.locator("#editor-settings").click();
+	await expect(page.locator("#settings-dialog")).toBeVisible();
+	const focused = page.locator('[data-close="settings-dialog"]');
+	await expect(focused).toBeFocused();
+	expect(await outline('[data-close="settings-dialog"]')).toBe("none");
+	await page.keyboard.press("Tab");
+	expect(
+		await page.evaluate(() => {
+			const active = document.activeElement;
+			return active?.closest("#settings-dialog") && active !== document.body
+				? getComputedStyle(active).outlineStyle
+				: "focus left the dialog";
+		}),
+	).toBe("solid");
+	await page.keyboard.press("Escape");
+	// Text fields keep their ring after a tap so the caret is easy to find.
+	await page.locator("#script").click();
+	expect(await outline("#script")).toBe("solid");
+});

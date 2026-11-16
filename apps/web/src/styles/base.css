@@ -86,7 +86,21 @@ dialog textarea:focus-visible,
 dialog input:not([type="checkbox"]):not([type="radio"]):focus-visible,
 #reader button:focus-visible {
 	outline-color: currentColor;
-	outline-offset: -5px;
+	/* One ring flush with the control's edge, drawn inside so it is never clipped. */
+	outline-offset: -3px;
+}
+/* After a tap or click, buttons and choices skip the ring. Keyboard use always
+   shows it, and text fields keep theirs while typing. */
+:root[data-input="pointer"]
+	:is(
+		button,
+		a,
+		summary,
+		input[type="checkbox"],
+		input[type="radio"],
+		input[type="range"]
+	):focus-visible {
+	outline: none;
 }
 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 select,
