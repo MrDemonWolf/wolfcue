@@ -15,6 +15,17 @@ body {
 body.reading {
 	overflow: hidden;
 }
+/* Read by screen readers, not shown: used where a visible heading already names the control. */
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
 [hidden] {
 	/* biome-ignore lint/complexity/noImportantStyles: Hidden views must override layout display rules. */
 	display: none !important;

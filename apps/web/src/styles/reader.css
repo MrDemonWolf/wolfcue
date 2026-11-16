@@ -175,11 +175,12 @@
 .reader-notice:empty {
 	display: none;
 }
+/* Restart and Exit share a row when they fit; Position takes its own row. */
 #reader-session-controls .paused-controls {
-	display: grid;
-	grid-template-columns: 1fr;
-	justify-items: start;
-	gap: 10px;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 10px;
 	padding: 0;
 }
 #reader-session-controls button {

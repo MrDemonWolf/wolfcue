@@ -26,7 +26,7 @@ body:has(dialog[open]) {
 	z-index: 3;
 	background: var(--surface);
 	border-bottom: 1px solid var(--line);
-	padding: 16px 20px;
+	padding: 12px 20px;
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: space-between;
@@ -44,7 +44,7 @@ body:has(dialog[open]) {
 	overflow-wrap: anywhere;
 	overscroll-behavior: contain;
 	scroll-padding-block: 8px;
-	padding: 20px;
+	padding: 14px 20px 20px;
 }
 #settings-dialog[data-context="editor"] [data-reader-only] {
 	display: none;
@@ -114,7 +114,7 @@ summary {
 	display: flex;
 	gap: 18px;
 	flex-wrap: wrap;
-	margin: 20px 0 14px;
+	margin: 6px 0 4px;
 	font-size: 13px;
 }
 .settings-links a {
@@ -202,36 +202,37 @@ summary {
 }
 .setting-group > span {
 	display: block;
-	margin-bottom: 8px;
+	margin-bottom: 6px;
 }
 
+/* Compact rhythm: 48px rows (44px targets plus a hairline), 18px between groups. */
 #settings-dialog fieldset {
-	margin-bottom: 28px;
+	margin-bottom: 18px;
 }
 #settings-dialog legend {
 	font-size: 14px;
-	margin-bottom: 12px;
+	margin-bottom: 4px;
 }
 #settings-dialog .setting-row {
-	min-height: 60px;
-	padding: 8px 0;
+	min-height: 48px;
+	padding: 2px 0;
 }
 #settings-dialog .setting-group {
-	padding: 12px 0 16px;
+	padding: 8px 0 10px;
 }
 #settings-dialog fieldset .hint {
-	margin: 12px 0 16px;
+	margin: 8px 0;
 }
 #fullscreen-toggle {
-	margin-top: 12px;
+	margin-top: 8px;
 }
 .setting-stepper {
-	padding: 12px 0 16px;
+	padding: 8px 0 10px;
 	border-bottom: 1px solid var(--line);
 	font-size: 14px;
 }
 .setting-stepper .stepper {
-	margin-top: 8px;
+	margin-top: 6px;
 }
 /* Smaller than the editor's 20px so an enlarged, focused field fits a short compact dialog. */
 #settings-dialog .stepper input[type="number"] {
@@ -239,14 +240,14 @@ summary {
 }
 @media (max-width: 300px), (max-height: 300px) {
 	#settings-dialog fieldset {
-		margin-bottom: 22px;
+		margin-bottom: 14px;
 	}
 	/* Let the last rows scroll clear of Moblin's lower-right expand button. */
 	#settings-dialog .dialog-body {
 		padding-bottom: 60px;
 	}
 	#settings-dialog .setting-row {
-		min-height: 56px;
-		padding: 6px 0;
+		min-height: 46px;
+		padding: 1px 0;
 	}
 }
