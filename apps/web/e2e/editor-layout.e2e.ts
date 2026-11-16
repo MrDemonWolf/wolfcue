@@ -259,3 +259,27 @@ test("supported fullscreen controls have room and remain reachable in Settings",
 		}
 	}
 });
+
+test("start options lead Settings in both contexts", async ({ page }) => {
+	await openApp(page);
+	const legends = () =>
+		page
+			.locator("#settings-dialog fieldset:not(.pace-presets) > legend")
+			.evaluateAll((nodes) =>
+				nodes
+					.filter((node) => (node as HTMLElement).checkVisibility())
+					.map((node) => node.textContent),
+			);
+	await page.locator("#editor-settings").click();
+	expect((await legends())[0]).toBe("Reading session");
+	await page.locator('[data-close="settings-dialog"]').click();
+	await start(page);
+	await page.locator("#reader-settings").click();
+	const order = await legends();
+	expect(order.indexOf("Reading session")).toBeLessThan(
+		order.indexOf("Reading pace"),
+	);
+	expect(order.indexOf("Reading session")).toBeLessThan(
+		order.indexOf("Script appearance"),
+	);
+});
