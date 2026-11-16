@@ -17,48 +17,58 @@ export default async function Page(props: PageProps<"/[[...slug]]">) {
 	const MDX = page.data.body;
 	const commit = process.env.COMMIT_SHA ?? "dev";
 	return (
-		<DocsPage toc={page.data.toc}>
+		<DocsPage
+			toc={page.data.toc}
+			// The site footer follows the previous and next page links.
+			footer={{ children: <SiteFooter commit={commit} /> }}
+		>
 			<DocsTitle>{page.data.title}</DocsTitle>
-			<DocsDescription>{page.data.description}</DocsDescription>
+			<DocsDescription className="mb-6">
+				{page.data.description}
+			</DocsDescription>
 			<DocsBody>
 				<MDX components={getMDXComponents()} />
 			</DocsBody>
-			<footer className="docs-footer">
-				<p className="affiliation">
-					WolfCue is an independent, open-source tool. Not affiliated with,
-					endorsed by, or sponsored by Moblin.
-				</p>
-				<div className="footer-bottom">
-					<div className="footer-credit">
-						<p>
-							© {new Date().getFullYear()} WolfCue by{" "}
-							<a href="https://www.mrdemonwolf.com">MrDemonWolf, Inc.</a>
-						</p>
-						<span className="footer-build">
-							Build{" "}
-							{commit === "dev" ? (
-								"dev"
-							) : (
-								<a
-									aria-label={`View build commit ${commit.slice(0, 7)}`}
-									href={`https://github.com/MrDemonWolf/wolfcue/commit/${commit}`}
-								>
-									{commit.slice(0, 7)}
-								</a>
-							)}
-						</span>
-					</div>
-					<nav aria-label="Project links">
-						<a href={`${SITE_BASE}/`}>App</a>
-						<a href="https://github.com/MrDemonWolf/wolfcue">GitHub</a>
-						<a href="https://mrdwolf.net/discord">Discord</a>
-						<a href={`${SITE_BASE}/third-party-notices.txt`}>
-							Third-party notices
-						</a>
-					</nav>
-				</div>
-			</footer>
 		</DocsPage>
+	);
+}
+function SiteFooter({ commit }: { commit: string }) {
+	return (
+		<footer className="docs-footer">
+			<p className="affiliation">
+				WolfCue is an independent, open-source tool. Not affiliated with,
+				endorsed by, or sponsored by Moblin.
+			</p>
+			<div className="footer-bottom">
+				<div className="footer-credit">
+					<p>
+						© {new Date().getFullYear()} WolfCue by{" "}
+						<a href="https://www.mrdemonwolf.com">MrDemonWolf, Inc.</a>
+					</p>
+					<span className="footer-build">
+						Build{" "}
+						{commit === "dev" ? (
+							"dev"
+						) : (
+							<a
+								aria-label={`View build commit ${commit.slice(0, 7)}`}
+								href={`https://github.com/MrDemonWolf/wolfcue/commit/${commit}`}
+							>
+								{commit.slice(0, 7)}
+							</a>
+						)}
+					</span>
+				</div>
+				<nav aria-label="Project links">
+					<a href={`${SITE_BASE}/`}>App</a>
+					<a href="https://github.com/MrDemonWolf/wolfcue">GitHub</a>
+					<a href="https://mrdwolf.net/discord">Discord</a>
+					<a href={`${SITE_BASE}/third-party-notices.txt`}>
+						Third-party notices
+					</a>
+				</nav>
+			</div>
+		</footer>
 	);
 }
 export function generateStaticParams() {
