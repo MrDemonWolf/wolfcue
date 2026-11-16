@@ -233,6 +233,10 @@ summary {
 .setting-stepper .stepper {
 	margin-top: 8px;
 }
+/* Smaller than the editor's 20px so an enlarged, focused field fits a short compact dialog. */
+#settings-dialog .stepper input[type="number"] {
+	font-size: 16px;
+}
 @media (max-width: 300px), (max-height: 300px) {
 	#settings-dialog fieldset {
 		margin-bottom: 22px;
