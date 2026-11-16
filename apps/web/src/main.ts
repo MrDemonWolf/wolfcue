@@ -14,8 +14,11 @@ import {
 } from "./core/pace";
 import {
 	buildScriptLink,
+	type IncomingLink,
 	LONG_LINK_CHARS,
-	readScriptLink,
+	parseScriptLink,
+	readLinkBytes,
+	type ScriptLinkResult,
 } from "./core/script-link";
 import {
 	type NumericSetting,
@@ -27,6 +30,7 @@ import { createStore, getStorage } from "./core/storage";
 import { resolveTheme } from "./core/theme";
 import { countWords, previewText } from "./core/words";
 import { byId, writeText } from "./ui/dom";
+import { compressText, inflateBytes } from "./ui/link-codec";
 import { createReader } from "./ui/reader";
 
 const store = createStore(getStorage(() => localStorage));
@@ -414,6 +418,7 @@ byId("export").addEventListener("click", () => {
 		/* Share support can vary by file type. */
 	}
 	byId("share-file").hidden = !shareSupported;
+	prepareScriptLink();
 	exportDialog.showModal();
 });
 /** Keep an edited export name for this session; the dated default stays current. */
@@ -503,11 +508,30 @@ applyTheme();
 updateControls();
 updateSaveStatus();
 
-byId("copy-script-link").addEventListener("click", async () => {
-	const result = buildScriptLink(
-		script.value,
-		new URL(import.meta.env.BASE_URL, location.origin).href,
+/**
+ * Script links are compressed when that is shorter. Compression is async, so
+ * the link is prepared when Export opens; copying it then needs no await,
+ * which keeps Safari's clipboard permission for the tap.
+ */
+let preparedLink: ScriptLinkResult | null = null;
+let linkJob: Promise<ScriptLinkResult> = Promise.resolve({
+	ok: false,
+	reason: "No script.",
+});
+function prepareScriptLink() {
+	const text = script.value;
+	const base = new URL(import.meta.env.BASE_URL, location.origin).href;
+	preparedLink = null;
+	const job = compressText(text).then((compressed) =>
+		buildScriptLink(text, base, compressed),
 	);
+	linkJob = job;
+	void job.then((result) => {
+		if (linkJob === job) preparedLink = result;
+	});
+}
+byId("copy-script-link").addEventListener("click", async () => {
+	const result = preparedLink ?? (await linkJob);
 	if (!result.ok) {
 		writeText(byId("export-status"), result.reason);
 		return;
@@ -536,10 +560,28 @@ byId("copy-script-link").addEventListener("click", async () => {
 		);
 	}
 });
-function loadScriptLink() {
-	const incoming = readScriptLink(location.hash);
-	if (!incoming) return;
+const INFLATE_REASONS = {
+	size: "This script link is larger than 1 MiB.",
+	unsupported:
+		"This browser cannot open compressed script links. Use a .txt file instead.",
+	invalid: "This script link contains invalid text.",
+} as const;
+async function inflateLink(bytes: Uint8Array): Promise<IncomingLink> {
+	const inflated = await inflateBytes(bytes, MAX_TEXT_BYTES);
+	return inflated.ok
+		? readLinkBytes(inflated.bytes)
+		: { ok: false, reason: INFLATE_REASONS[inflated.problem] };
+}
+let incomingJob = 0;
+async function loadScriptLink() {
+	const payload = parseScriptLink(location.hash);
+	if (!payload) return;
 	history.replaceState(null, "", location.pathname + location.search);
+	const job = ++incomingJob;
+	const incoming =
+		payload.kind === "text" ? payload.result : await inflateLink(payload.bytes);
+	// A newer link replaced this one while it was inflating.
+	if (job !== incomingJob) return;
 	// Reopening a link that matches the current script changes nothing.
 	if (incoming.ok && incoming.text === script.value) {
 		if (!reader.opened) fileStatus("This link matches your current script.");
@@ -572,5 +614,5 @@ function loadScriptLink() {
 		);
 	else apply();
 }
-window.addEventListener("hashchange", loadScriptLink);
-loadScriptLink();
+window.addEventListener("hashchange", () => void loadScriptLink());
+void loadScriptLink();

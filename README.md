@@ -20,7 +20,8 @@ Paste your script. Set your pace. Start reading.
 - **Local scripts:** paste Unicode or import UTF-8 `.txt` files up to 1 MiB.
   Storage failures keep the current text in memory and show a warning.
 - **Script links:** choose **Export > Copy script link**, then open the link
-  in Moblin to load a snapshot of the text. No account or sync is needed.
+  in Moblin to load a snapshot of the text. Links are compressed when that is
+  shorter. No account or sync is needed.
 - **Backup options:** share a file where supported, download `.txt`, or copy
   text. In-app browsers may block downloads; verify the saved file.
 - **Themes and access:** System, Light, and Dark choices plus a quick

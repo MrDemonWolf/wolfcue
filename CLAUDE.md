@@ -79,8 +79,10 @@ async reads. Confirm replacement/clear/erase in-page with Cancel focused.
 Render scripts with `textContent` only. Do not introduce HTML sinks.
 
 Only an explicit **Copy script link** action may place script text in a URL,
-using the `#script=` fragment. Never put scripts in URL paths or query strings,
-and never upload them. Incoming script fragments use the same UTF-8/1 MiB
+using the `#script=` fragment: `#script=z:` plus base64url deflate-raw text
+when that is shorter, otherwise percent-encoded text. Plain links must keep
+opening. Inflate at most 1 MiB before validating. Never put scripts in URL
+paths or query strings, and never upload them. Incoming script fragments use the same UTF-8/1 MiB
 validation as file imports, ask before replacing different non-empty content,
 and never start reading automatically. Remove the fragment from the address
 with `history.replaceState` after reading it; handle `hashchange` for reused

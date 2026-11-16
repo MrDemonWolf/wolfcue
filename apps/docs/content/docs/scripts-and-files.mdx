@@ -43,7 +43,10 @@ Storage can be cleared by the browser, so do not use it as your only archive.
 ## Script links
 
 Choose **Export**, then **Copy script link**. The link stores the text after
-`#script=` and works without a server or sync account. Anyone with the link
+`#script=` and works without a server or sync account. When it makes the link
+shorter, WolfCue compresses the text first: an English script's link is
+usually about half as long, and scripts in other writing systems shrink much
+more. Older links without compression still open. Anyone with the link
 can read its text. WolfCue reads the fragment in the receiving browser, then
 removes it from the address. That does not remove history the browser may
 already have saved. It never starts the reader automatically.

@@ -74,7 +74,9 @@ test("Copy script link uses the correct base and offers a selectable clipboard f
 	expect(url.origin).toBe(base.origin);
 	expect(url.pathname).toBe(base.pathname);
 	expect(url.search).toBe("");
-	expect(decodeURIComponent(url.hash.slice(8))).toBe(SCRIPT);
+	// The shorter compressed form is used, and it never travels in the path or query.
+	expect(url.hash.startsWith("#script=z:")).toBe(true);
+	expect(url.href.length).toBeLessThan(encodeURIComponent(SCRIPT).length / 2);
 	await expect(field).toBeFocused();
 	expect(
 		await field.evaluate(
@@ -99,4 +101,43 @@ test("incoming link while reading pauses before replacement, including hash-only
 	await page.locator("#confirm-accept").click();
 	await expect(page.locator("#editor")).toBeVisible();
 	await expect(page.locator("#script")).toHaveValue(linked);
+});
+
+test("a compressed link opens the same text in a fresh browser", async ({
+	page,
+	browser,
+	baseURL,
+}) => {
+	await openApp(page);
+	await page.locator("#export").click();
+	const field = page.locator("#script-link");
+	await page.locator("#copy-script-link").click();
+	await expect(field).toHaveValue(/#script=z:/);
+	const link = await field.inputValue();
+	const fresh = await browser.newContext({ baseURL });
+	try {
+		const other = await fresh.newPage();
+		await other.goto(link);
+		await expect(other.locator("#script")).toHaveValue(SCRIPT);
+		await expect(other).toHaveURL(baseURL ?? "");
+		await expect(other.locator("#reader")).toBeHidden();
+		// Opening it again over different text asks first.
+		await other.locator("#script").fill("Different words");
+		await other.goto(link);
+		await expect(other.locator("#confirm-dialog")).toBeVisible();
+		await other.locator("#confirm-accept").click();
+		await expect(other.locator("#script")).toHaveValue(SCRIPT);
+	} finally {
+		await fresh.close();
+	}
+});
+test("a damaged compressed link leaves the script alone", async ({ page }) => {
+	await openApp(page);
+	for (const hash of ["z:not+base64", "z:AAAA"]) {
+		await page.goto(`./#script=${hash}`);
+		await expect(page.locator("#file-status")).toContainText(
+			"Your script has not changed",
+		);
+		await expect(page.locator("#script")).toHaveValue(SCRIPT);
+	}
 });
