@@ -126,7 +126,7 @@
 }
 #reading-guide {
 	position: absolute;
-	top: var(--guide-y, 38%);
+	top: var(--guide-y, 25%);
 	left: 0;
 	right: 0;
 	border-top: 1px solid var(--brand);
@@ -147,7 +147,7 @@
 	top: 0;
 	left: 0;
 	right: 0;
-	height: var(--guide-y, 38%);
+	height: var(--dim-y, 0);
 	background: var(--bg);
 	opacity: 0;
 	pointer-events: none;
@@ -155,16 +155,19 @@
 #reader[data-phase="playing"] #read-dim {
 	opacity: 0.25;
 }
+/* The countdown uses the empty band above the first line, so the opening words stay visible. */
 #countdown {
 	position: absolute;
-	inset: 0;
+	inset: 0 0 auto 0;
+	height: var(--guide-y, 25%);
 	display: grid;
 	place-items: center;
-	background: var(--bg);
 	font-family: "Montserrat Variable", system-ui, sans-serif;
-	font-size: clamp(56px, 20vh, 160px);
+	font-size: clamp(24px, calc(var(--guide-y, 80px) * 0.7), 160px);
 	font-weight: 600;
+	line-height: 1;
 	color: var(--brand-text);
+	pointer-events: none;
 }
 .reader-notice {
 	margin: 0;

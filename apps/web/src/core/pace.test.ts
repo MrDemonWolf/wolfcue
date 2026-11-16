@@ -3,11 +3,14 @@ import {
 	calculatePace,
 	estimateSec,
 	minTargetSec,
+	paceFromSettings,
 	remainingSec,
 	sanitizeLayout,
 	sanitizePace,
+	seedTargetOnSwitch,
 	suggestTargetSec,
 } from "./pace";
+import { DEFAULT_SETTINGS } from "./settings";
 
 test("WPM matches measured layout and target uses remaining distance and time", () => {
 	expect(
@@ -73,4 +76,16 @@ test("suggested targets keep the current pace in whole steps", () => {
 	expect(suggestTargetSec(0, 150)).toBe(10);
 	expect(suggestTargetSec(10_000_000, 60)).toBe(3600);
 	expect(suggestTargetSec(495, 300)).toBeGreaterThanOrEqual(minTargetSec(495));
+});
+test("switching to Target time seeds a reachable target only when needed", () => {
+	const wpm = { ...DEFAULT_SETTINGS };
+	const target = { ...DEFAULT_SETTINGS, paceMode: "target" as const };
+	expect(seedTargetOnSwitch(wpm, target, 495).targetSec).toBe(200);
+	expect(
+		seedTargetOnSwitch(wpm, { ...target, targetSec: 240 }, 495).targetSec,
+	).toBe(240);
+	expect(seedTargetOnSwitch(wpm, target, 0)).toBe(target);
+	expect(seedTargetOnSwitch(target, target, 495)).toBe(target);
+	expect(paceFromSettings(target)).toEqual({ mode: "target", targetSec: 60 });
+	expect(paceFromSettings(wpm)).toEqual({ mode: "wpm", wpm: 150 });
 });

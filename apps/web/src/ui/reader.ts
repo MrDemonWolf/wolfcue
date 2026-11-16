@@ -18,7 +18,8 @@ import {
 	setPace,
 	step,
 } from "../core/engine";
-import { remainingSec } from "../core/pace";
+import { dimHeightPx, guideOffsetPx } from "../core/guide";
+import { paceFromSettings, remainingSec } from "../core/pace";
 import { toBlocks } from "../core/render-plan";
 import { nudgeSetting, type Settings } from "../core/settings";
 import { mapKey, type Shortcut } from "../core/shortcuts";
@@ -60,12 +61,7 @@ export function createReader(
 	);
 	byId("fullscreen-setting-row").hidden = !fullscreenSupported;
 	byId("fullscreen-toggle").hidden = !fullscreenSupported;
-	function pace(): Pace {
-		const settings = getSettings();
-		return settings.paceMode === "target"
-			? { mode: "target", targetSec: settings.targetSec }
-			: { mode: "wpm", wpm: settings.wpm };
-	}
+	const pace = (): Pace => paceFromSettings(getSettings());
 	function cacheAnchor() {
 		anchor = captureAnchor(blocks, state.positionPx, state.layout.endPx);
 	}
@@ -176,11 +172,12 @@ export function createReader(
 		const lineHeight =
 			Number.parseFloat(typography.lineHeight) ||
 			Number.parseFloat(typography.fontSize) * settings.lineHeight;
-		guideOffset = Math.min(
-			Math.round(stageHeight * 0.38),
-			Math.max(0, Math.floor(stageHeight - lineHeight)),
-		);
+		guideOffset = guideOffsetPx(stageHeight, lineHeight);
 		stage.style.setProperty("--guide-y", `${guideOffset}px`);
+		stage.style.setProperty(
+			"--dim-y",
+			`${dimHeightPx(guideOffset, lineHeight)}px`,
+		);
 		blocks = Array.from(content.children, (block) => {
 			const element = block as HTMLElement;
 			return { top: element.offsetTop, height: element.offsetHeight };
@@ -393,6 +390,7 @@ export function createReader(
 		content.style.setProperty("--reader-align", settings.align);
 		content.classList.toggle("mirrored", settings.mirror);
 		byId("reading-guide").hidden = !settings.guide;
+		byId("read-dim").hidden = !settings.guide;
 		state = setPace(state, pace());
 		if (opened) {
 			measure();

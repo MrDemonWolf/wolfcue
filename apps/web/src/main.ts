@@ -4,8 +4,14 @@ import "./styles/editor.css";
 import "./styles/reader.css";
 import "./styles/dialogs.css";
 import { formatClock } from "./core/clock-format";
-import { textFileName } from "./core/export-name";
+import { defaultExportName, textFileName } from "./core/export-name";
 import { MAX_TEXT_BYTES, validateImport } from "./core/import-validate";
+import {
+	estimateSec,
+	MAX_WPM,
+	paceFromSettings,
+	seedTargetOnSwitch,
+} from "./core/pace";
 import { buildScriptLink, readScriptLink } from "./core/script-link";
 import {
 	type NumericSetting,
@@ -29,7 +35,8 @@ const exportDialog = byId<HTMLDialogElement>("export-dialog");
 let confirmAction: (() => void) | null = null;
 let importGeneration = 0;
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
-let filename = "wolfcue-script.txt";
+/** Name to offer on export; null means the dated default. */
+let filename: string | null = null;
 const reader = createReader(() => settings, updateSettings, openSettings);
 const systemTheme = matchMedia("(prefers-color-scheme: dark)");
 
@@ -83,7 +90,11 @@ function updateControls() {
 	updateStats();
 }
 function updateSettings(patch: Partial<Settings>) {
-	settings = sanitizeSettings({ ...settings, ...patch });
+	settings = seedTargetOnSwitch(
+		settings,
+		sanitizeSettings({ ...settings, ...patch }),
+		countWords(script.value),
+	);
 	store.savePrefs(settings);
 	applyTheme();
 	updateControls();
@@ -92,13 +103,10 @@ function updateSettings(patch: Partial<Settings>) {
 }
 function updateStats() {
 	const words = countWords(script.value);
-	const estimate =
-		settings.paceMode === "target"
-			? settings.targetSec
-			: (words / settings.wpm) * 60;
+	const estimate = estimateSec(paceFromSettings(settings), words);
 	writeText(
 		byId("script-stats"),
-		`${words.toLocaleString()} ${words === 1 ? "word" : "words"} · about ${formatClock(estimate, "ceil")}`,
+		`${words.toLocaleString()} ${words === 1 ? "word" : "words"} · about ${formatClock(estimate.sec, "ceil")}${estimate.capped ? ` · capped at ${MAX_WPM} wpm` : ""}`,
 	);
 	for (const id of ["start-reading", "clear", "export"])
 		byId<HTMLButtonElement>(id).disabled = !script.value.trim();
@@ -177,7 +185,10 @@ for (const dialog of document.querySelectorAll<HTMLDialogElement>("dialog")) {
 byId("editor-settings").addEventListener("click", openSettings);
 byId("theme-toggle").addEventListener("click", () => {
 	const current = resolveTheme(settings.theme, systemTheme.matches);
-	updateSettings({ theme: current === "dark" ? "light" : "dark" });
+	const next = current === "dark" ? "light" : "dark";
+	// Matching the phone again means following it again.
+	const system = systemTheme.matches ? "dark" : "light";
+	updateSettings({ theme: next === system ? "system" : next });
 });
 systemTheme.addEventListener("change", applyTheme);
 for (const field of document.querySelectorAll<
@@ -227,7 +238,7 @@ byId("clear").addEventListener("click", () => {
 		"Clear",
 		() => {
 			script.value = "";
-			filename = "wolfcue-script.txt";
+			filename = null;
 			saveScript(true);
 			script.focus();
 		},
@@ -245,7 +256,7 @@ byId("erase-data").addEventListener("click", () => {
 			if (reader.opened) reader.close();
 			store.erase();
 			script.value = "";
-			filename = "wolfcue-script.txt";
+			filename = null;
 			settings = store.prefs;
 			applyTheme();
 			updateControls();
@@ -323,7 +334,8 @@ function exportFile() {
 	);
 }
 byId("export").addEventListener("click", () => {
-	byId<HTMLInputElement>("export-filename").value = filename;
+	byId<HTMLInputElement>("export-filename").value =
+		filename ?? defaultExportName(new Date());
 	byId("script-link").hidden = true;
 	byId("script-link-label").hidden = true;
 	byId("script-link-hint").hidden = true;
@@ -342,9 +354,16 @@ byId("export").addEventListener("click", () => {
 	byId("share-file").hidden = !shareSupported;
 	exportDialog.showModal();
 });
+/** Keep an edited export name for this session; the dated default stays current. */
+function commitFileName(file: File) {
+	if (file.name !== defaultExportName(new Date())) filename = file.name;
+	byId<HTMLInputElement>("export-filename").value = file.name;
+}
 byId("share-file").addEventListener("click", async () => {
 	try {
-		await navigator.share({ files: [exportFile()] });
+		const file = exportFile();
+		commitFileName(file);
+		await navigator.share({ files: [file] });
 		writeText(
 			byId("export-status"),
 			"Share sheet closed. Check where you saved the file.",
@@ -363,11 +382,10 @@ byId("download-file").addEventListener("click", () => {
 	const link = document.createElement("a");
 	try {
 		const file = exportFile();
-		filename = file.name;
-		byId<HTMLInputElement>("export-filename").value = filename;
+		commitFileName(file);
 		url = URL.createObjectURL(file);
 		link.href = url;
-		link.download = filename;
+		link.download = file.name;
 		document.body.append(link);
 		link.click();
 		writeText(
@@ -469,7 +487,7 @@ function loadScriptLink() {
 		if (token !== importGeneration) return;
 		if (reader.opened) reader.close();
 		script.value = incoming.text;
-		filename = "wolfcue-script.txt";
+		filename = null;
 		saveScript(true);
 		fileStatus(
 			"Linked script loaded. Choose Start reading when you are ready.",

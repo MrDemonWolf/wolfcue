@@ -95,7 +95,8 @@ test("elapsed timing, stalled frames and block anchors survive layout changes", 
 		.evaluate(
 			(stage, pos) =>
 				Math.round(
-					(Math.round(stage.clientHeight * 0.38) - pos) * devicePixelRatio,
+					(Number.parseFloat(stage.style.getPropertyValue("--guide-y")) - pos) *
+						devicePixelRatio,
 				) / devicePixelRatio,
 			before.position,
 		);

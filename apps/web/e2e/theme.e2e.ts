@@ -45,10 +45,16 @@ test("quick theme switch follows system, persists, and stays in sync with Settin
 	await expect(toggle).toHaveAccessibleName("Switch to dark theme");
 	await page.reload();
 	await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+	// Toggling back to the phone's appearance follows the phone again.
 	await toggle.click();
-	await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+	await expect(page.locator("html")).not.toHaveAttribute("data-theme");
+	expect(
+		await page.evaluate(() => localStorage.getItem("wolfcue:theme")),
+	).toBeNull();
 	await page.locator("#editor-settings").click();
-	await expect(page.locator("#theme input[value=dark]")).toBeChecked();
+	await expect(page.locator("#theme input[value=system]")).toBeChecked();
+	await page.locator("#theme input[value=dark]").check();
+	await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 	await page.locator("#theme input[value=system]").check();
 	await page.locator('[data-close="settings-dialog"]').click();
 	await expect(toggle).toHaveAccessibleName("Switch to light theme");

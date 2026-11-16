@@ -1,4 +1,9 @@
-import { bounded, clampSetting, SETTING_LIMITS } from "./settings";
+import {
+	bounded,
+	clampSetting,
+	SETTING_LIMITS,
+	type Settings,
+} from "./settings";
 export type Pace =
 	| { mode: "wpm"; wpm: number }
 	| { mode: "target"; targetSec: number };
@@ -68,9 +73,34 @@ export function estimateSec(
 		? { sec: floor, capped: true }
 		: { sec: p.targetSec, capped: false };
 }
+export function paceFromSettings(
+	settings: Pick<Settings, "paceMode" | "wpm" | "targetSec">,
+): Pace {
+	return settings.paceMode === "target"
+		? { mode: "target", targetSec: settings.targetSec }
+		: { mode: "wpm", wpm: settings.wpm };
+}
 /** A target that keeps the current words-per-minute pace, in whole steps. */
 export function suggestTargetSec(words: number, wpm: number): number {
 	const { step } = SETTING_LIMITS.targetSec;
 	const sec = (Math.max(0, words) / clampSetting("wpm", wpm)) * 60;
 	return clampSetting("targetSec", Math.ceil(sec / step) * step);
+}
+/**
+ * Switching to Target time keeps a reachable target. A stored target that the
+ * 300 wpm cap cannot meet is replaced with one that keeps the current pace.
+ */
+export function seedTargetOnSwitch(
+	previous: Settings,
+	next: Settings,
+	words: number,
+): Settings {
+	if (
+		previous.paceMode !== "wpm" ||
+		next.paceMode !== "target" ||
+		words <= 0 ||
+		next.targetSec >= minTargetSec(words)
+	)
+		return next;
+	return { ...next, targetSec: suggestTargetSec(words, next.wpm) };
 }
