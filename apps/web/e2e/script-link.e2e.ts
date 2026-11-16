@@ -141,3 +141,60 @@ test("a damaged compressed link leaves the script alone", async ({ page }) => {
 		await expect(page.locator("#script")).toHaveValue(SCRIPT);
 	}
 });
+
+test("Copy link for Moblin on the main screen copies the short link", async ({
+	page,
+	baseURL,
+}) => {
+	await page.addInitScript(() => {
+		Object.defineProperty(navigator, "clipboard", {
+			configurable: true,
+			value: {
+				writeText: async (text: string) => {
+					Object.assign(window, { copied: text });
+				},
+			},
+		});
+	});
+	await openApp(page);
+	const button = page.locator("#quick-link");
+	await expect(button).toBeEnabled();
+	// Let the background compression for the typed script finish.
+	await expect
+		.poll(async () => {
+			await button.click();
+			return page.evaluate(
+				() => (window as unknown as { copied?: string }).copied ?? "",
+			);
+		})
+		.toMatch(/#script=z:/);
+	const copied = await page.evaluate(
+		() => (window as unknown as { copied: string }).copied,
+	);
+	expect(new URL(copied).pathname).toBe(new URL(baseURL ?? "").pathname);
+	await expect(page.locator("#link-status")).toContainText("Link copied");
+	await expect(page.locator("#export-dialog")).toBeHidden();
+});
+
+test("a blocked clipboard hands the main-screen link to Export, selected", async ({
+	page,
+}) => {
+	await page.addInitScript(() => {
+		Object.defineProperty(navigator, "clipboard", {
+			configurable: true,
+			value: { writeText: () => Promise.reject(new Error("denied")) },
+		});
+	});
+	await openApp(page);
+	await page.locator("#quick-link").click();
+	await expect(page.locator("#export-dialog")).toBeVisible();
+	const field = page.locator("#script-link");
+	await expect(field).toBeFocused();
+	expect(
+		await field.evaluate(
+			(el: HTMLInputElement) =>
+				el.selectionStart === 0 && el.selectionEnd === el.value.length,
+		),
+	).toBe(true);
+	await expect(page.locator("#export-status")).toContainText("copy");
+});

@@ -57,8 +57,8 @@ it at WolfCue, plus manual steps. Moblin owns recording; WolfCue cannot
 position its native window or guarantee recording continues.
 
 Safari and Moblin have separate storage. Paste or import inside Moblin,
-or choose **Export > Copy script link** in WolfCue and open that link in
-Moblin's private browser. Review the loaded text, confirm replacement if
+or choose **Copy link for Moblin** (also in **Export**) in WolfCue and open
+that link in Moblin's private browser. Review the loaded text, confirm replacement if
 asked, and select **Start reading** when ready. Opening a link never starts
 scrolling automatically.
 

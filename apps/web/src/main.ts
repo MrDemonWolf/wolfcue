@@ -108,6 +108,8 @@ function flushScript() {
 	clearTimeout(saveTimer);
 	store.flush();
 	updateSaveStatus();
+	writeText(byId("link-status"), "");
+	prepareScriptLink();
 }
 function applyTheme() {
 	if (settings.theme === "system")
@@ -169,7 +171,7 @@ function updateStats() {
 		byId("script-stats"),
 		`${words.toLocaleString()} ${words === 1 ? "word" : "words"} · about ${formatClock(estimate.sec, "ceil")}${estimate.capped ? ` · capped at ${MAX_WPM} wpm` : ""}`,
 	);
-	for (const id of ["start-reading", "clear", "export"])
+	for (const id of ["start-reading", "quick-link", "clear", "export"])
 		byId<HTMLButtonElement>(id).disabled = !script.value.trim();
 }
 function invalidateImport() {
@@ -445,7 +447,7 @@ function exportFile() {
 		{ type: "text/plain;charset=utf-8" },
 	);
 }
-byId("export").addEventListener("click", () => {
+function openExport() {
 	byId<HTMLInputElement>("export-filename").value =
 		filename ?? defaultExportName(new Date());
 	byId("script-link").hidden = true;
@@ -466,7 +468,8 @@ byId("export").addEventListener("click", () => {
 	byId("share-file").hidden = !shareSupported;
 	prepareScriptLink();
 	exportDialog.showModal();
-});
+}
+byId("export").addEventListener("click", openExport);
 /** Keep an edited export name for this session; the dated default stays current. */
 function commitFileName(file: File) {
 	if (file.name !== defaultExportName(new Date())) filename = file.name;
@@ -560,47 +563,83 @@ updateSaveStatus();
  * which keeps Safari's clipboard permission for the tap.
  */
 let preparedLink: ScriptLinkResult | null = null;
+let preparedText: string | null = null;
 let linkJob = 0;
 const linkBase = () => new URL(import.meta.env.BASE_URL, location.origin).href;
+/** Compresses the current script in the background so a copy tap never waits. */
 function prepareScriptLink() {
 	const text = script.value;
+	if (preparedLink && preparedText === text) return;
 	const job = ++linkJob;
-	preparedLink = null;
 	void compressText(text).then((compressed) => {
-		if (job === linkJob)
-			preparedLink = buildScriptLink(text, linkBase(), compressed);
+		if (job !== linkJob) return;
+		preparedText = text;
+		preparedLink = buildScriptLink(text, linkBase(), compressed);
 	});
 }
-byId("copy-script-link").addEventListener("click", async () => {
-	// If compression has not finished, copy the plain link now rather than
-	// wait and lose Safari's clipboard permission for this tap.
-	const result = preparedLink ?? buildScriptLink(script.value, linkBase());
-	if (!result.ok) {
-		writeText(byId("export-status"), result.reason);
-		return;
-	}
+/**
+ * The compressed link when it is ready for this exact text, otherwise the
+ * plain link at once: waiting would lose Safari's clipboard permission.
+ */
+function currentScriptLink(): ScriptLinkResult {
+	return preparedLink && preparedText === script.value
+		? preparedLink
+		: buildScriptLink(script.value, linkBase());
+}
+function longLinkNote(url: string) {
+	return url.length > LONG_LINK_CHARS
+		? ` This link is ${Math.ceil(url.length / 1024)} KB; if it will not open, use a .txt file instead.`
+		: "";
+}
+/** Shows the link in Export; selects it when the clipboard is blocked. */
+function showScriptLink(url: string, select: boolean) {
 	const field = byId<HTMLInputElement>("script-link");
-	field.value = result.url;
+	field.value = url;
 	field.hidden = false;
 	byId("script-link-label").hidden = false;
 	byId("script-link-hint").hidden = false;
-	const long =
-		result.url.length > LONG_LINK_CHARS
-			? ` This link is ${Math.ceil(result.url.length / 1024)} KB; if it will not open, use a .txt file instead.`
-			: "";
-	try {
-		await navigator.clipboard.writeText(result.url);
-		writeText(
-			byId("export-status"),
-			`Script link copied. Open it in Moblin's private browser.${long}`,
-		);
-	} catch {
+	if (select) {
 		field.focus();
 		field.select();
 		writeText(
 			byId("export-status"),
-			`Select the script link below and copy it.${long}`,
+			`Select the script link below and copy it.${longLinkNote(url)}`,
 		);
+	}
+}
+byId("copy-script-link").addEventListener("click", async () => {
+	const result = currentScriptLink();
+	if (!result.ok) {
+		writeText(byId("export-status"), result.reason);
+		return;
+	}
+	showScriptLink(result.url, false);
+	try {
+		await navigator.clipboard.writeText(result.url);
+		writeText(
+			byId("export-status"),
+			`Script link copied. Open it in Moblin's private browser.${longLinkNote(result.url)}`,
+		);
+	} catch {
+		showScriptLink(result.url, true);
+	}
+});
+byId("quick-link").addEventListener("click", async () => {
+	const result = currentScriptLink();
+	if (!result.ok) {
+		writeText(byId("link-status"), result.reason);
+		return;
+	}
+	try {
+		await navigator.clipboard.writeText(result.url);
+		writeText(
+			byId("link-status"),
+			`Link copied. Open it in Moblin's browser.${longLinkNote(result.url)}`,
+		);
+	} catch {
+		// Blocked clipboard: hand over the selectable link in Export.
+		openExport();
+		showScriptLink(result.url, true);
 	}
 });
 const INFLATE_REASONS = {
@@ -665,3 +704,4 @@ async function loadScriptLink() {
 }
 window.addEventListener("hashchange", () => void loadScriptLink());
 void loadScriptLink();
+prepareScriptLink();

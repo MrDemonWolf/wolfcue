@@ -525,3 +525,15 @@
 .pace-presets + .stepper {
 	margin-top: 6px;
 }
+
+/* Sending to Moblin sits right under Start reading. */
+#quick-link {
+	width: 100%;
+	margin-top: 8px;
+}
+#link-status {
+	margin: 8px 0 0;
+}
+#link-status:empty {
+	display: none;
+}
