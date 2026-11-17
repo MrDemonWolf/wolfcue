@@ -76,6 +76,17 @@
 	border-color: var(--line-strong);
 	border-bottom: 0;
 }
+/* One focus ring around the text box and its word-count bar, fully outside both. */
+.script-box {
+	border-radius: 10px;
+}
+#script:focus-visible {
+	outline: none;
+}
+.script-box:focus-within {
+	outline: 3px solid var(--focus);
+	outline-offset: 3px;
+}
 #script::placeholder {
 	color: var(--text-muted);
 	opacity: 1;
@@ -442,6 +453,12 @@
 		margin-top: 14px;
 	}
 	.script-panel {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+	}
+	.script-box {
+		flex: 1;
 		display: flex;
 		flex-direction: column;
 		min-height: 0;

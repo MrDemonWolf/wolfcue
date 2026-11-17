@@ -69,7 +69,17 @@ test("focus rings show for keyboard use but not after a tap", async ({
 	await page.keyboard.press("Escape");
 	// Text fields keep their ring after a tap so the caret is easy to find.
 	await page.locator("#script").click();
-	expect(await outline("#script")).toBe("solid");
+	// The ring wraps the text box and its word-count bar from the outside.
+	expect(await outline(".script-box")).toBe("solid");
+	expect(await outline("#script")).toBe("none");
+	const ring = await page.evaluate(() => {
+		const box = document.querySelector(".script-box")?.getBoundingClientRect();
+		const bar = document
+			.querySelector(".script-bottom")
+			?.getBoundingClientRect();
+		return { boxBottom: box?.bottom ?? 0, barBottom: bar?.bottom ?? 1 };
+	});
+	expect(ring.boxBottom).toBeGreaterThanOrEqual(ring.barBottom);
 });
 
 test("focus that moves with no recent tap shows its ring", async ({ page }) => {
