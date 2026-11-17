@@ -4,6 +4,7 @@ import "./styles/editor.css";
 import "./styles/reader.css";
 import "./styles/dialogs.css";
 import { formatClock } from "./core/clock-format";
+import { spokenText } from "./core/cues";
 import { defaultExportName, textFileName } from "./core/export-name";
 import { MAX_TEXT_BYTES, validateImport } from "./core/import-validate";
 import {
@@ -156,7 +157,7 @@ function updateSettings(patch: Partial<Settings>) {
 	settings = seedTargetOnSwitch(
 		settings,
 		sanitizeSettings({ ...settings, ...patch }),
-		countWords(script.value),
+		countWords(spokenText(script.value)),
 	);
 	store.savePrefs(settings);
 	applyTheme();
@@ -165,7 +166,8 @@ function updateSettings(patch: Partial<Settings>) {
 	updateSaveStatus();
 }
 function updateStats() {
-	const words = countWords(script.value);
+	// Action cues are not spoken, so they do not count toward pace.
+	const words = countWords(spokenText(script.value));
 	const estimate = estimateSec(paceFromSettings(settings), words);
 	writeText(
 		byId("script-stats"),

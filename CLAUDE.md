@@ -76,7 +76,9 @@ script writes 400 ms, flushing on pagehide and hidden visibility.
 Validate `.txt` imports fully before replacement: UTF-8, maximum 1 MiB
 (1,048,576 bytes, inclusive), no NUL, non-empty, normalize CRLF/CR. Drop stale
 async reads. Confirm replacement/clear/erase in-page with Cancel focused.
-Render scripts with `textContent` only. Do not introduce HTML sinks.
+Render scripts with `textContent` only. Do not introduce HTML sinks. Action
+cues (`*like this*`, parsed in `core/cues.ts`) render as `span` elements
+with `textContent`; they are not spoken, so word counts and pace skip them.
 
 Only an explicit **Copy link for Moblin** or **Copy script link** action may
 place script text in a URL, using the `#script=` fragment: `#script=z:` plus

@@ -18,6 +18,8 @@ Paste your script. Set your pace. Start reading.
 - **Compact reader:** a top bar and Settings gear sized for small Moblin views,
   adjustable text, line spacing, alignment, mirror, guide, and an optional
   countdown that keeps the first line visible.
+- **Action cues:** write actions between asterisks, like `*smile*`. The
+  reader shows them smaller and quieter, and they do not count toward pace.
 - **Local scripts:** paste Unicode or import UTF-8 `.txt` files up to 1 MiB.
   Storage failures keep the current text in memory and show a warning.
 - **Script links:** choose **Export > Copy script link**, then open the link

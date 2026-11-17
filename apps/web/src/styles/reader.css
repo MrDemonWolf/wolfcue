@@ -120,6 +120,17 @@
 .script-line {
 	min-height: calc(var(--reader-font, 36px) * var(--reader-line-height, 1.5));
 }
+/* Action cues support the spoken words: smaller, quieter, never the focus. */
+.cue-action {
+	font-size: 0.6em;
+	font-style: italic;
+	font-weight: 400;
+	color: var(--text-muted);
+}
+/* A line that is only actions takes the smaller line height. */
+.script-line.cue-line {
+	min-height: 0;
+}
 #reading-guide {
 	position: absolute;
 	top: var(--guide-y, 25%);

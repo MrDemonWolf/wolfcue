@@ -126,3 +126,32 @@ test("export leads with the Moblin link and groups backups", async ({
 		order.indexOf("export-filename"),
 	);
 });
+
+test("action cues show smaller, stay literal and do not count as words", async ({
+	page,
+}) => {
+	await openApp(page);
+	await page
+		.locator("#script")
+		.fill(
+			"*smile* Welcome back to the stream\n*look at camera*\nLet's start now *wave*\n*<b>bow</b>*",
+		);
+	await expect(page.locator("#script-stats")).toContainText("8 words");
+	await start(page);
+	const cues = page.locator("#script-content .cue-action");
+	await expect(cues).toHaveText([
+		"smile",
+		"look at camera",
+		"wave",
+		"<b>bow</b>",
+	]);
+	await expect(page.locator("#script-content b")).toHaveCount(0);
+	await expect(page.locator("#script-content .cue-line")).toHaveCount(2);
+	const sizes = await cues.first().evaluate((cue) => ({
+		cue: Number.parseFloat(getComputedStyle(cue).fontSize),
+		line: Number.parseFloat(
+			getComputedStyle(cue.parentElement as Element).fontSize,
+		),
+	}));
+	expect(sizes.cue).toBeLessThan(sizes.line * 0.75);
+});

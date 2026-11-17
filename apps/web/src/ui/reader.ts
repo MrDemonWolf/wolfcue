@@ -1,6 +1,7 @@
 import { type Block, captureAnchor, resolveAnchor } from "../core/anchor";
 import { formatClock } from "../core/clock-format";
 import { countdownValue } from "../core/countdown";
+import { splitCues, spokenText } from "../core/cues";
 import {
 	beginCountdown,
 	createEngine,
@@ -367,10 +368,23 @@ export function createReader(
 		for (const line of toBlocks(text)) {
 			const block = document.createElement("div");
 			block.className = "script-line";
-			block.textContent = line;
+			// Action cues (*like this*) become smaller spans; text stays text.
+			const parts = splitCues(line);
+			for (const part of parts) {
+				if (!part.action) {
+					block.append(part.text);
+					continue;
+				}
+				const cue = document.createElement("span");
+				cue.className = "cue-action";
+				cue.textContent = part.text;
+				block.append(cue);
+			}
+			if (parts.some((part) => part.action) && !spokenText(line).trim())
+				block.classList.add("cue-line");
 			content.append(block);
 		}
-		words = countWords(text);
+		words = countWords(spokenText(text));
 		blocks = [];
 		pointer = null;
 		sliderValue = -1;
