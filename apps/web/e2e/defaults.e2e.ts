@@ -154,4 +154,24 @@ test("action cues show smaller, stay literal and do not count as words", async (
 		),
 	}));
 	expect(sizes.cue).toBeLessThan(sizes.line * 0.75);
+	// An actions-only line is shorter than a full spoken line.
+	const heights = await page.locator("#script-content").evaluate((content) => ({
+		cueLine: content.querySelector<HTMLElement>(".cue-line")?.offsetHeight ?? 0,
+		spokenLine: Number.parseFloat(getComputedStyle(content).lineHeight),
+	}));
+	expect(heights.cueLine).toBeGreaterThan(0);
+	expect(heights.cueLine).toBeLessThan(heights.spokenLine * 0.75);
+});
+
+test("a script of only actions cannot start reading", async ({ page }) => {
+	await openApp(page);
+	await page.locator("#script").fill("*smile*\n*wave to chat*");
+	await expect(page.locator("#script-stats")).toHaveText(
+		"0 words · add words to read; actions alone do not scroll",
+	);
+	await expect(page.locator("#start-reading")).toBeDisabled();
+	await expect(page.locator("#export")).toBeEnabled();
+	await expect(page.locator("#quick-link")).toBeEnabled();
+	await page.locator("#script").fill("*smile* Hello there");
+	await expect(page.locator("#start-reading")).toBeEnabled();
 });

@@ -127,9 +127,13 @@
 	font-weight: 400;
 	color: var(--text-muted);
 }
-/* A line that is only actions takes the smaller line height. */
+/* A line that is only actions uses the smaller size for its own line height. */
 .script-line.cue-line {
 	min-height: 0;
+	font-size: 0.6em;
+}
+.script-line.cue-line .cue-action {
+	font-size: 1em;
 }
 #reading-guide {
 	position: absolute;

@@ -10,6 +10,11 @@ export type Pace =
 export interface Layout {
 	endPx: number;
 	words: number;
+	/**
+	 * Height of the lines that hold spoken words. Lines with only action cues
+	 * are left out, so they do not make speech scroll faster. Defaults to endPx.
+	 */
+	spokenPx?: number;
 }
 /** Fastest scroll speed, also the cap applied in Target time mode. */
 export const MAX_WPM = SETTING_LIMITS.wpm.max;
@@ -19,10 +24,14 @@ export function sanitizePace(pace: Pace): Pace {
 		: { mode: "wpm", wpm: clampSetting("wpm", pace.wpm) };
 }
 export function sanitizeLayout(layout: Layout): Layout {
-	return {
-		endPx: bounded(layout.endPx, 0, 0, Number.MAX_SAFE_INTEGER),
+	const endPx = bounded(layout.endPx, 0, 0, Number.MAX_SAFE_INTEGER);
+	const clean: Layout = {
+		endPx,
 		words: bounded(layout.words, 0, 0, Number.MAX_SAFE_INTEGER),
 	};
+	if (layout.spokenPx !== undefined)
+		clean.spokenPx = bounded(layout.spokenPx, endPx, 0, endPx);
+	return clean;
 }
 /**
  * Adapted from Pocket Teleprompter, Copyright (c) 2026 ttomohisa, MIT License.
@@ -36,7 +45,7 @@ export function calculatePace(
 ): { pxPerSec: number; overTarget: boolean } {
 	const p = sanitizePace(pace);
 	const l = sanitizeLayout(layout);
-	const perWord = l.endPx / Math.max(1, l.words);
+	const perWord = (l.spokenPx ?? l.endPx) / Math.max(1, l.words);
 	if (p.mode === "wpm")
 		return { pxPerSec: (p.wpm / 60) * perWord, overTarget: false };
 	const requested =

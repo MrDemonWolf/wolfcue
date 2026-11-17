@@ -89,3 +89,19 @@ test("switching to Target time seeds a reachable target only when needed", () =>
 	expect(paceFromSettings(target)).toEqual({ mode: "target", targetSec: 60 });
 	expect(paceFromSettings(wpm)).toEqual({ mode: "wpm", wpm: 150 });
 });
+test("pace follows spoken lines when action-only lines are measured apart", () => {
+	expect(
+		calculatePace(
+			{ mode: "wpm", wpm: 150 },
+			{ endPx: 1000, words: 100, spokenPx: 800 },
+		).pxPerSec,
+	).toBe(20);
+	expect(sanitizeLayout({ endPx: 500, words: 10, spokenPx: 900 })).toEqual({
+		endPx: 500,
+		words: 10,
+		spokenPx: 500,
+	});
+	expect(
+		sanitizeLayout({ endPx: 500, words: 10, spokenPx: Number.NaN }).spokenPx,
+	).toBe(500);
+});

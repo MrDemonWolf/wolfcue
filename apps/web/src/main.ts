@@ -168,13 +168,18 @@ function updateSettings(patch: Partial<Settings>) {
 function updateStats() {
 	// Action cues are not spoken, so they do not count toward pace.
 	const words = countWords(spokenText(script.value));
+	const hasText = Boolean(script.value.trim());
 	const estimate = estimateSec(paceFromSettings(settings), words);
 	writeText(
 		byId("script-stats"),
-		`${words.toLocaleString()} ${words === 1 ? "word" : "words"} · about ${formatClock(estimate.sec, "ceil")}${estimate.capped ? ` · capped at ${MAX_WPM} wpm` : ""}`,
+		hasText && words === 0
+			? "0 words · add words to read; actions alone do not scroll"
+			: `${words.toLocaleString()} ${words === 1 ? "word" : "words"} · about ${formatClock(estimate.sec, "ceil")}${estimate.capped ? ` · capped at ${MAX_WPM} wpm` : ""}`,
 	);
-	for (const id of ["start-reading", "quick-link", "clear", "export"])
-		byId<HTMLButtonElement>(id).disabled = !script.value.trim();
+	for (const id of ["quick-link", "clear", "export"])
+		byId<HTMLButtonElement>(id).disabled = !hasText;
+	// Reading needs spoken words; a script of only actions would flash past.
+	byId<HTMLButtonElement>("start-reading").disabled = words === 0;
 }
 function invalidateImport() {
 	importGeneration++;

@@ -211,9 +211,15 @@ export function createReader(
 			return { top: element.offsetTop, height: element.offsetHeight };
 		});
 		const endPx = content.offsetHeight;
+		// Pace follows spoken lines; action-only lines pass at the same speed.
+		let spokenPx = endPx;
+		Array.from(content.children).forEach((block, index) => {
+			if (block.classList.contains("cue-line"))
+				spokenPx -= blocks[index]?.height ?? 0;
+		});
 		state = relayout(
 			state,
-			{ endPx, words },
+			{ endPx, words, spokenPx },
 			resolveAnchor(blocks, anchor, endPx),
 		);
 		render();
@@ -357,7 +363,7 @@ export function createReader(
 		schedule();
 	}
 	function open(text: string) {
-		if (opened || !text.trim()) return;
+		if (opened || countWords(spokenText(text)) === 0) return;
 		opened = true;
 		wakeUnavailable = false;
 		notice("");
